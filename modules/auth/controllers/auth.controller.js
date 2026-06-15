@@ -15,6 +15,12 @@ const login = asyncWrapper(async (req, res, next) => {
     if (!isMatch) {
         return next(new AppError('Invalid email or password', 401));
     }
+
+    const token =createAccessToken(user.email, user.role);
+    user.password = undefined; // Remove password from the response
+    user.__v = undefined; // Remove __v from the response
+    res.status(200).json({status:HttpStatusText.Success,message: 'user login successful' ,data:{token,user} });
+
     const token =createAccessToken(user.email, user.role);
     user.password = undefined; // Remove password from the response
     res.status(200).json({status:HttpStatusText.Success,message: token ,data:{token,user} });
@@ -27,15 +33,19 @@ const register = asyncWrapper(async (req, res, next) => {
 
     const user = new User({ name, email, mobile,password: hashedPassword, role, birthdate,
          avatar:req.file ? req.file.filename : null });
-    await user.save();
 
+
+    await user.save();
+  user.password = undefined; // Remove password from the response
+    user.__v = undefined; // Remove __v from the response
     const token = createAccessToken(user.email, user.role);
-user.token = token;
     res.status(201).json({status:HttpStatusText.Success,message: 'User registered successfully' ,
-    data:{token,user}
+    data:{token,user} });
     });
-});
-createAccessToken = (email, role) => {
+
+const createAccessToken = (email, role) => {
     return jwt.sign({ email, role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
+
+
 module.exports={login,register}; 

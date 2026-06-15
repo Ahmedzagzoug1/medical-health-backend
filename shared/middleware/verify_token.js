@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
-const AppError = require('./app_error');
+const AppError = require('../utils/app_error');
+<<<<<<< Updated upstream
 const asyncWrapper = require('./async_wrapper');
+=======
+const asyncWrapper = require('../middleware/async_wrapper');
+>>>>>>> Stashed changes
 const verifyToken = asyncWrapper(async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
