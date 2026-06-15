@@ -9,11 +9,17 @@ const userSchema=new mongoose.Schema({
         lowercase:true,
         validate : [validator.isEmail, 'Please provide a valid email']
     },
+    mobile:{type:String,required:true,
+        unique:true,
+        trim:true,
+        validate : [validator.isMobilePhone, 'Please provide a valid mobile number']
+    },
+    birthdate:{type:Date,required:true},
     password:{type:String,required:true,
         trim:true,
+        select:false,
         validate : [validator.isLength, 'Password must be at least 6 characters long'
-            
-        ]
+        ]            
     },
     avatar:{type:String,
         default:'/uploads/avatar.png'},

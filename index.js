@@ -5,23 +5,21 @@ const userRoutes = require('./modules/users/routes/users.route');
 //const doctorRoutes = require('./modules/doctors/routes/doctor.route');
 const AppError = require('./shared/utils/app_error');
 
-const HttpStatus = require('./shared/utils/http_status_text');
+const HttpStatus = require('./shared/utils/http_status');
 const appConfig = require('./config/app.config');
 const connectDB = require('./infrastructure/database/mongo_db');
-const async_wrapper = require('./shared/middleware/async_wrapper');
 
 connectDB();
 
 const app=express();
 
 app.use(express.json());
-
+// Routes
 app.use('/api/v1/users', userRoutes     );
 //app.use('/api/v1/doctors', doctorRoutes);
 app.use('/api/v1/auth', authRoutes);
 
-// Handle undefined routes 
-app.all('/.*$/',async_wrapper(async (req, res, next) => {
+
   next(new AppError(404, HttpStatus.NotFound, `Can't find ${req.originalUrl} on this server!`));
 }));
 // Global error handling middleware 
@@ -29,12 +27,12 @@ app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || 'error';
   res.status(statusCode).json({
-   status: status,
-    message: err.message,
+
+    status,message: err.message,
   });
 });
   
-
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on port ${process.env.PORT}`);
+const port = appConfig.port || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
