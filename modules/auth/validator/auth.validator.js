@@ -1,5 +1,11 @@
 const express_validator = require('express-validator');
+<<<<<<< Updated upstream
 const { body, validationResult } = express_validator;
+=======
+const { body, oneOf } = express_validator; // استدعاء الـ oneOf للـ Login المزدوج
+const { handleValidation } = require('../../../shared/middleware/handle_validation');
+const  UserRole  = require('../../../shared/utils/user_role');
+>>>>>>> Stashed changes
 
 const userValidationSchema = [
   body('name').notEmpty().withMessage('Name is required'),

@@ -2,8 +2,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const AppError = require('../../../shared/utils/app_error');
 const asyncWrapper = require('../../../shared/middleware/async_wrapper');
-const User = require('../../../models/user_model'); 
-const HttpSatutus=require('../../../shared/utils/http_status');
+const User = require('../../auth/models/user.model'); 
+const HttpSatutus=require('../../../shared/utils/http_status_text');
 const {verifyToken }= require('../../../shared/middleware/verify_token');
 // 1. جلب بيانات الحساب
 const getProfile = asyncWrapper(async (req, res, next) => {
