@@ -1,4 +1,5 @@
 const User = require('../../../models/user_model');
+
 const asyncWrapper = require('../../../../shared/middleware/async_wrapper');
 const AppError = require('../../../shared/utils/app_error');
 const bcrypt = require('bcrypt');
