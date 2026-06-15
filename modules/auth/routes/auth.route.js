@@ -1,7 +1,7 @@
 const express = require('express');
 const authController = require('../controllers/auth.controller');
-const authValidation = require('../../../shared/middleware/auth_validator');
-const userModel = require('../../models/user_model');
+const authValidation = require('../validator/auth.validator');
+const userModel = require('../models/user.model');
 
 const multer = require('multer');
 const path = require('path');

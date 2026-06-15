@@ -1,5 +1,5 @@
-const AppError = require('../shared/utils/app_error');
-const HttpStatusText = require('../shared/utils/http_status_text');
+const AppError = require('../utils/app_error');
+const HttpStatusText = require('../utils/http_status_text');
 module.exports = (fn) => {
   return async (req, res, next) => {
     try {

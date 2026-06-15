@@ -1,10 +1,9 @@
-const User = require('../../../models/user_model');
-
-const asyncWrapper = require('../../../../shared/middleware/async_wrapper');
+const User = require('../models/user.model');
+const asyncWrapper = require('../../../shared/middleware/async_wrapper');
 const AppError = require('../../../shared/utils/app_error');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const HttpStatusText = require('../../../../shared/utils/http_status_text');
+const HttpStatusText = require('../../../shared/utils/http_status_text');
 const login = asyncWrapper(async (req, res, next) => {
     const { email, password,role } = req.body;
     const user = await User.findOne({ email });
