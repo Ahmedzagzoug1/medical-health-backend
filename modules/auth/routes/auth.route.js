@@ -1,7 +1,7 @@
 const express = require('express');
-const userController = require('../../users/controllers/user_controller');
+const authController = require('../controllers/auth.controller');
 const authValidation = require('../../../shared/middleware/auth_validator');
-const userModel = require('../../../models/user_model');
+const userModel = require('../../models/user_model');
 const multer = require('multer');
 const path = require('path');
 const deskstorage = multer.diskStorage({
@@ -35,8 +35,8 @@ const upload = multer({ storage: deskstorage ,
 }
 );
 const router = express.Router();
-router.post('/users/login',authValidation.validateLogin,userController.login);
+router.post('/users/login',authValidation.validateLogin,authController.login);
 router.post('/users/register', upload.single('avatar'), 
-authValidation.validateRegister,userController.register);
+authValidation.validateRegister,authController.register);
 
 module.exports=router;
