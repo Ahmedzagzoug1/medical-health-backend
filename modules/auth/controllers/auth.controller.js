@@ -4,6 +4,7 @@ const AppError = require('../../../shared/utils/app_error');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const HttpStatusText = require('../../../shared/utils/http_status_text');
+const HttpStatusText = require('../../../shared/utils/http_status_text');
 const login = asyncWrapper(async (req, res, next) => {
     const { identifier, password } = req.body;
     const user = await User.findOne({ $or: [{ email: identifier }, { mobile: identifier }],
