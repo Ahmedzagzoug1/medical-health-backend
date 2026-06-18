@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
-const AppError = require('./app_error');
-const asyncWrapper = require('./async_wrapper');
+const AppError = require('../utils/app_error');
+const asyncWrapper = require('../middleware/async_wrapper');
+    const appConfig=require('../../config/app.config');
 const verifyToken = asyncWrapper(async (req, res, next) => {
     const authHeader = req.headers.authorization;
+const JWT_SECRET= process.env.JWT_SECRET;
 
     // 1. Check if the Authorization header exists and follows the Bearer scheme
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -14,7 +16,7 @@ const verifyToken = asyncWrapper(async (req, res, next) => {
 
     try {
         // 3. Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token,JWT_SECRET);
         
         // 4. Attach the decoded payload (e.g., userId, role) to the request object
         req.user = decoded;

@@ -20,13 +20,9 @@ const userSchema=new mongoose.Schema({
         select:false,
         validate : [validator.isLength, 'Password must be at least 6 characters long'
         ]            
-    },
-    avatar:{type:String,
-        default:'/uploads/avatar.png'},
-        role:{type:String,enum:[userRole.ADMIN, userRole.DOCTOR, userRole.PATIENT],
-             default:userRole.PATIENT},
-    expireAt:{type:Date,default:Date.now,expires:3600}
-});
+    }},{
+        timeStamp:true
+    });
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

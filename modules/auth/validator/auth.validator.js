@@ -1,7 +1,7 @@
-const express_validator = require('express-validator');
-const { body, oneOf } = express_validator; // استدعاء الـ oneOf للـ Login المزدوج
+const express_validator=require('express-validator')
+const { body, oneOf } = express_validator; 
 const { handleValidation } = require('../../../shared/middleware/handle_validation');
-const { UserRole } = require('../../../shared/utils/user_role');
+const  UserRole  = require('../../../shared/utils/user_role');
 
 const validateRegister = [
   body('name').notEmpty().withMessage('Name is required'),
@@ -18,7 +18,7 @@ const validateLogin = [
     body('identifier').isEmail().withMessage('Invalid email address'),
     body('identifier').isMobilePhone().withMessage('Invalid mobile number')
   ], { message: 'Identifier must be a valid email or mobile number' }),
-  body('password').notEmpty().withMessage('Password is required'),
+  body('password').isLength({min : 6}).withMessage('Password must be at least 6 characters long'),
   handleValidation
 ];
 

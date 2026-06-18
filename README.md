@@ -1,351 +1,230 @@
-# Project Structure
+# 🏥 Medical Health Backend API
 
-## Root Directory
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.20.0-green.svg?style=flat-square&logo=node.js)](https://nodejs.org)
+[![Express Version](https://img.shields.io/badge/express-4.21.x-blue.svg?style=flat-square&logo=express)](https://expressjs.com)
+[![MongoDB Mongoose](https://img.shields.io/badge/mongoose-8.x-green.svg?style=flat-square&logo=mongodb)](https://mongoosejs.com)
+[![Architecture](https://img.shields.io/badge/Architecture-Modular%20%2F%20Clean-orange.svg?style=flat-square)](#project-structure)
+
+A comprehensive, scalable, and secure Medical Health Management Backend API designed to power modern cross-platform mobile applications (Flutter). Built using a Modular Architecture Strategy, the system ensures scalability, maintainability, strict validation, and clean separation of concerns while following Clean Code and SOLID Principles.
+
+---
+
+## 🚀 Core Features
+
+- Modular Architecture
+- JWT Authentication
+- Role-Based Access Control (RBAC)
+- Password Hashing using bcrypt
+- Request Validation using express-validator
+- Centralized Error Handling
+- File Upload Management with multer
+- MongoDB Integration using Mongoose
+
+---
+
+## 📂 Project Structure
 
 ```text
 medical_health/
-│
 ├── config/
 ├── infrastructure/
+│   └── database/
 ├── modules/
+│   ├── auth/
+│   ├── users/
+│   ├── doctors/
+│   ├── appointments/
+│   └── admin/
 ├── shared/
+│   ├── middleware/
+│   ├── utils/
+│   └── errors/
 ├── uploads/
 ├── .env
-├── .gitignore
-├── index.js
 ├── package.json
-└── package-lock.json
+└── index.js
 ```
 
 ---
 
-## config/
+## 🔐 Authorization System
 
-Contains application configuration files.
+### 👑 Admin
 
-**Responsibilities:**
+- Full system access
+- Manage users and doctors
+- Monitor platform activities
 
-* Database configuration
-  
-**Examples:**
+### 🩺 Doctor
 
-```text
-config/
-├── database.js
+- Manage doctor profile
+- Set availability schedules
+- Manage appointments
 
-```
+### 👤 Patient
 
----
-
-## infrastructure/
-
-Contains infrastructure and external service integrations.
-
-**Responsibilities:**
-
-* Database connections
-* Payment gateways
-* Notification services
-
-**Examples:**
-
-```text
-infrastructure/
-├── database/
-├── payment/
-└── notifications/
-```
+- Browse doctors
+- Book appointments
+- Manage profile
 
 ---
 
-## modules/
+## 🗺️ API Endpoints
 
-Contains all business modules of the application.
+### Authentication
 
-```text
-modules/
-├── auth/
-├── users/
-├── doctors/
-├── patients/
-├── appointments/
-├── reviews/
-├── chat/
-└── payments/
-```
-
-Each module is self-contained and follows the same architecture.
-
----
-
-## Auth Module
-
-```text
-auth/
-├── controllers/
-├── middleware/
-├── routes/
-└── validator/
-```
-
-### controllers/
-
-Contains business logic for authentication operations.
-
-**Examples:**
-
-* Register
-* Login
-* Forgot Password
-* Reset Password
-* Email Verification
-
-### middleware/
-
-Authentication-related middleware.
-
-**Examples:**
-
-* Check User Exists
-* Verify Email
-* Authentication Guards
-
-### routes/
-
-Defines authentication endpoints.
-
-**Examples:**
+Base URL:
 
 ```http
-POST /api/auth/register
-POST /api/auth/login
-```
-
-### validator/
-
-Request validation rules.
-
-**Examples:**
-
-* Register Validation
-* Login Validation
-* Reset Password Validation
-
----
-
-## Users Module
-
-Responsible for:
-
-* User Profile Management
-* Update User Information
-* Change Password
-* Upload Profile Image
-
----
-
-## Doctors Module
-
-Responsible for:
-
-* Doctor Profile Management
-* Specializations
-* Availability Schedule
-* Working Hours
-
----
-
-## Patients Module
-
-Responsible for:
-
-* Patient Profile Management
-* Medical Information
-* Patient Records
-
----
-
-## Appointments Module
-
-Responsible for:
-
-* Book Appointment
-* Cancel Appointment
-* Reschedule Appointment
-* Appointment Status Management
-
----
-
-## Reviews Module
-
-Responsible for:
-
-* Create Review
-* Update Review
-* Delete Review
-* Doctor Rating System
-
----
-
-## Payments Module
-
-Responsible for:
-
-* Payment Processing
-* Transaction History
-* Refund Management
-
----
-
-## shared/
-
-Contains reusable code shared across all modules.
-
-```text
-shared/
-├── errors/
-├── middleware/
-└── utils/
-```
-
-### errors/
-
-Custom application errors.
-
-**Examples:**
-
-```text
-AppError.js
-ValidationError.js
-NotFoundError.js
-```
-
-### middleware/
-
-Global middleware used throughout the application.
-
-**Examples:**
-
-```text
-verifyToken.js
-allowRoles.js
-errorHandler.js
-asyncWrapper.js
-```
-
-### utils/
-
-Helper functions and utilities.
-
-**Examples:**
-
-```text
-generateJWT.js
-hashPassword.js
-httpStatus.js
-fileUpload.js
-```
-
----
-
-## uploads/
-
-Stores uploaded files and images.
-
-```text
-uploads/
-├── users/
-├── doctors/
-└── reviews/
-```
-
----
-
-## app.js
-
-Application initialization file.
-
-**Responsibilities:**
-
-* Register middlewares
-* Register routes
-* Global error handling
-
----
-
-## index.js
-
-Application entry point.
-
-**Responsibilities:**
-
-* Load environment variables
-* Connect to database
-* Start server
-
----
-
-# API Versioning
-
-```text
 /api/v1/auth
+```
+
+| Method | Endpoint | Description |
+|----------|----------|----------|
+| POST | /register | Register new user |
+| POST | /login | Login and receive JWT |
+
+---
+
+### Users
+
+Base URL:
+
+```http
 /api/v1/users
+```
+
+| Method | Endpoint | Description |
+|----------|----------|----------|
+| GET | /profile | Get profile |
+| PUT | /update | Update profile |
+| PATCH | /change-password | Change password |
+
+---
+
+### Doctors
+
+Base URL:
+
+```http
 /api/v1/doctors
-/api/v1/patients
+```
+
+Features:
+
+- Doctor Profile Management
+- Availability Scheduling
+- Appointment Tracking
+
+---
+
+### Appointments
+
+Base URL:
+
+```http
 /api/v1/appointments
-/api/v1/reviews
-/api/v1/payments
 ```
 
+Features:
+
+- Book Appointment
+- Cancel Appointment
+- Reschedule Appointment
+
 ---
 
-# Development Workflow
+## 🛠️ Installation
 
-## Git Branches
+### Clone Repository
 
-```text
- auth
- doctors
- master
- patient
- reviews
- users
-
+```bash
+git clone <repository-url>
+cd medical_health
 ```
 
-Each feature should be developed in a separate branch and merged through a Pull Request.
+### Install Dependencies
 
----
+```bash
+npm install
+```
 
-# User Roles
-
-## Admin
-
-* Manage users
-* Manage doctors
-* Manage appointments
-* Manage payments
-
-## Doctor
-
-* Manage profile
-* View appointments
-* Update appointment status
-
-## Patient
-
-* Book appointments
-* Submit reviews
-* Manage profile
-
----
-
-# Environment Variables
-
-Create a `.env` file based on the following template:
+### Create Environment Variables
 
 ```env
-dbconnection=
-JWT_SECRET=
-CLOUDINARY_API_SECRET=
+PORT=3000
+
+DB_CONNECTION=mongodb://localhost:27017/medical_health_db
+
+JWT_SECRET=your_super_secret_jwt_key_here
+
+JWT_EXPIRES_IN=90d
 ```
+
+### Run Project
+
+```bash
+npm run dev
+```
+
+or
+
+```bash
+nodemon
+```
+
+---
+
+## 🌿 Git Workflow
+
+### Branches
+
+- master
+- auth
+- users
+- doctors
+- appointments
+- admin
+
+---
+
+## 🔒 Security Features
+
+- JWT Authentication
+- Password Hashing
+- RBAC Authorization
+- Input Validation
+- Protected Routes
+- Error Handling
+
+---
+
+## 📦 Main Dependencies
+
+```json
+{
+  "express": "^4.21.x",
+  "mongoose": "^8.x",
+  "jsonwebtoken": "^9.x",
+  "bcrypt": "^6.x",
+  "multer": "^2.x",
+  "express-validator": "^7.x"
+}
+```
+
+---
+
+## 🚀 Future Features
+
+- Real-time Chat (Socket.IO)
+- Video Consultation
+- Online Payments
+- Push Notifications
+- Medical Records
+- Reviews & Ratings
+
+---
+
+## 📄 License
+
+Educational and Portfolio Project.
