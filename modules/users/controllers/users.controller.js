@@ -1,12 +1,11 @@
 const bcrypt = require('bcrypt');
 const AppError = require('../../../shared/utils/app_error');
 const asyncWrapper = require('../../../shared/middleware/async_wrapper');
-const User = require('../../auth/models/user.model'); 
+const User = require('../models/user.model'); 
 const HttpSatutus = require('../../../shared/utils/http_status_text'); // تأكد من الاسم هنا لو بتستخدمه
 
-// 1. جلب بيانات الحساب
 const getProfile = asyncWrapper(async (req, res, next) => {
-    // الـ verifyToken في الـ Routes جهزت الـ user هنا تلقائياً خلاص 😎
+    //this user is get from verify token 
     const user = req.user; 
     
     res.status(200).json({
@@ -15,15 +14,14 @@ const getProfile = asyncWrapper(async (req, res, next) => {
     });
 });
 
-// 2. تحديث بيانات الحساب
 const updateProfile = asyncWrapper(async (req, res, next) => {
     const { name } = req.body;     
     console.log("Name received:", name);
 console.log(req.user);
-    // بنجيب الـ id من الـ req.user اللي جاية من الـ token middleware
+    //this user is get from verify token 
     const userId = req.user.id ; 
 console.log('id',userId);
-    // تحديث البيانات وجلب المستخدم "بعد" التعديل باستخدام returnDocument
+//find and update documentation
     const updatedUser = await User.findByIdAndUpdate(
         userId, 
         { name },
@@ -31,16 +29,15 @@ console.log('id',userId);
     );
     
     if (!updatedUser) {
-        return next(new AppError(404, HttpSatutus.Fail, 'User not found'));
+        return next(new AppError(404, HttpStatusText.Fail, 'User not found'));
     }
     
     res.status(200).json({
         status: 'success',
-        data: { user: updatedUser } // تعديل اسم المتغير هنا للصح
-    });
+        data: { user: updatedUser } 
+        });
 });
 
-// 3. تغيير كلمة المرور
 const changePassword = asyncWrapper(async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.id ;
@@ -64,9 +61,8 @@ const changePassword = asyncWrapper(async (req, res, next) => {
     });
 });
 
-// 4. رفع الصورة الشخصية
 const uploadAvatar = asyncWrapper(async (req, res, next) => { 
-    const userId = req.user.id || req.user._id;
+    const userId = req.user.id ;
     
     const user = await User.findById(userId);
     if (!user) {
@@ -83,5 +79,78 @@ const uploadAvatar = asyncWrapper(async (req, res, next) => {
         }
     });
 });
+//admin 
+const getAllUsers = asyncWrapper(async (req, res, next) => {
+    //pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-module.exports = { getProfile, updateProfile, changePassword, uploadAvatar };
+    const users = await User.find({}, { password: 0, refreshToken: 0 })
+                            .skip(skip)
+                            .limit(limit);
+
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+        status: HttpStatusText.SUCCESS,
+        results: users.length,
+        total: totalUsers,
+        data: { users }
+    });
+});
+
+const getUserById = asyncWrapper(async (req, res, next) => {
+    const { id } = req.params;
+
+    const user = await User.findById(id, { password: 0, refreshToken: 0 });
+
+    if (!user) {
+        return next(new AppError(404, HttpStatusText.FAIL || 'fail', 'User not found'));
+    }
+
+    res.status(200).json({
+        status: HttpStatusText.SUCCESS,
+        data: { user }
+    });
+});
+
+const updateUser = asyncWrapper(async (req, res, next) => {
+    const { id } = req.params;
+    const { name, role, isVerified } = req.body; // الـ Admin يقدر يغير الـ role أو حالة الحساب مثلاً
+
+    const updatedUser = await User.findByIdAndUpdate(
+        id,
+        { name, role, isVerified },
+        { returnDocument: 'after', runValidators: true }
+    ).select('-password -refreshToken');
+
+    if (!updatedUser) {
+        return next(new AppError(404, HttpStatusText.FAIL || 'fail', 'User not found'));
+    }
+
+    res.status(200).json({
+        status: HttpStatusText.SUCCESS,
+        data: { user: updatedUser }
+    });
+});
+
+// 4. حذف مستخدم نهائياً من الداتا بيز
+const deleteUser = asyncWrapper(async (req, res, next) => {
+    const { id } = req.params;
+
+    const user = await User.findByIdAndDelete(id);
+
+    if (!user) {
+        return next(new AppError(404, HttpStatusText.Fail || 'fail', 'User not found'));
+    }
+
+    res.status(200).json({
+        status: HttpStatusText.SUCCESS || 'success',
+        data: null,
+        message: 'User deleted successfully'
+    });
+});
+module.exports = { getProfile, updateProfile, changePassword, uploadAvatar,getAllUsers,
+    getUserById,updateUser,deleteUser
+ };
