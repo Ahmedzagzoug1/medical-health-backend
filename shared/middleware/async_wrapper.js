@@ -5,7 +5,7 @@ module.exports = (fn) => {
     try {
       await fn(req, res, next);
     } catch (error) {
-      next(new AppError(500, HttpStatusText.Error, error.message));
+      next(new AppError(500, HttpStatusText, error.message));
     }
   };
 };

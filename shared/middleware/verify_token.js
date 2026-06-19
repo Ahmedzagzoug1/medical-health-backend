@@ -2,13 +2,14 @@ const jwt = require('jsonwebtoken');
 const AppError = require('../utils/app_error');
 const asyncWrapper = require('../middleware/async_wrapper');
     const appConfig=require('../../config/app.config');
+    const httpStatusText=require('../utils/http_status_text');
 const verifyToken = asyncWrapper(async (req, res, next) => {
     const authHeader = req.headers.authorization;
 const JWT_SECRET= process.env.JWT_SECRET;
 
     // 1. Check if the Authorization header exists and follows the Bearer scheme
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(new AppError('Token is required', 401));
+        return next(new AppError(401,httpStatusText,'Token is required'));
     }
 
     // 2. Extract the token from the header
@@ -25,14 +26,14 @@ const JWT_SECRET= process.env.JWT_SECRET;
     } catch (error) {
         // 5. Handle specific JWT errors gracefully
         if (error.name === 'TokenExpiredError') {
-            return next(new AppError('Token has expired, please log in again', 401));
+            return next(new AppError(401,httpStatusText.Unauthorized,'Token has expired, please log in again'));
         }
         if (error.name === 'JsonWebTokenError') {
-            return next(new AppError('Invalid token, authorization denied', 401));
+            return next(new AppError(401,httpStatusText.Unauthorized,'Invalid token, authorization denied'));
         }
         
         // Fallback for any other unexpected errors
-        return next(new AppError('Authentication failed', 401));
+        return next(new AppError(401,httpStatusText.Unauthorized,'Authentication failed'));
     }
 });
 module.exports = { verifyToken };

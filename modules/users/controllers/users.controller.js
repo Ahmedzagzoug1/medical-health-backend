@@ -1,14 +1,13 @@
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const AppError = require('../../../shared/utils/app_error');
 const asyncWrapper = require('../../../shared/middleware/async_wrapper');
 const User = require('../../auth/models/user.model'); 
-const HttpSatutus=require('../../../shared/utils/http_status_text');
-const {verifyToken }= require('../../../shared/middleware/verify_token');
+const HttpSatutus = require('../../../shared/utils/http_status_text'); // تأكد من الاسم هنا لو بتستخدمه
+
 // 1. جلب بيانات الحساب
 const getProfile = asyncWrapper(async (req, res, next) => {
- const decoded=verifyToken(req, res, next);
-     const user = req.user; 
+    // الـ verifyToken في الـ Routes جهزت الـ user هنا تلقائياً خلاص 😎
+    const user = req.user; 
     
     res.status(200).json({
         status: 'success',
@@ -18,43 +17,44 @@ const getProfile = asyncWrapper(async (req, res, next) => {
 
 // 2. تحديث بيانات الحساب
 const updateProfile = asyncWrapper(async (req, res, next) => {
-    const { name } = req.body; // تعديل الـ destructuring الخاطئ
+    const { name } = req.body;     
+    console.log("Name received:", name);
+console.log(req.user);
+    // بنجيب الـ id من الـ req.user اللي جاية من الـ token middleware
+    const userId = req.user.id ; 
+console.log('id',userId);
+    // تحديث البيانات وجلب المستخدم "بعد" التعديل باستخدام returnDocument
+    const updatedUser = await User.findByIdAndUpdate(
+        userId, 
+        { name },
+        { returnDocument: 'after', runValidators: true }
+    );
     
-    const decoded=verifyToken(req, res, next); // تأكد من جلب بيانات المستخدم بشكل صحيح من التوكن
-    if (!decoded) {
-        return next(new AppError('User not authenticated', 401));
-    }
-    const oldUser = await User.findByIdAndUpdate(decoded.id, { name },
-         { new: true, runValidators: true });
-    
-    if (!oldUser) {
-        return next(new AppError(HttpStatus.NOT_FOUND, 404));
+    if (!updatedUser) {
+        return next(new AppError(404, HttpSatutus.Fail, 'User not found'));
     }
     
     res.status(200).json({
         status: 'success',
-        data: { user }
+        data: { user: updatedUser } // تعديل اسم المتغير هنا للصح
     });
-}); // تم إغلاق القوس بشكل صحيح هنا
+});
 
 // 3. تغيير كلمة المرور
 const changePassword = asyncWrapper(async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
-    const decoded=verifyToken(req, res, next); // تأكد من جلب بيانات المستخدم بشكل صحيح من التوكن
-    if (!decoded) {
-        return next(new AppError('User not authenticated', 401));
-    }
-    const user = await User.findById(decoded.id).select('+password');
+    const userId = req.user.id ;
+
+    const user = await User.findById(userId).select('+password');
     if (!user) {
-        return next(new AppError('User not found', 404));
+        return next(new AppError(404,  HttpSatutus.Fail, 'User not found'));
     }
     
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-        return next(new AppError('Current password is incorrect', 401));
+        return next(new AppError(400,  HttpSatutus.Fail, 'Current password is incorrect'));
     }
     
-    // ملاحظة: تأكد أن موديل المستخدم يحتوي على .pre('save') لعمل hash للكلمة الجديدة
     user.password = newPassword; 
     await user.save();
     
@@ -65,12 +65,12 @@ const changePassword = asyncWrapper(async (req, res, next) => {
 });
 
 // 4. رفع الصورة الشخصية
-const uploadAvatar = asyncWrapper(async (req, res, next) => { // تعديل خطأ إملائي في اسم الدالة
-        const decoded = verifyToken(req, res, next); // تأكد من جلب بيانات المستخدم بشكل صحيح من التوكن
+const uploadAvatar = asyncWrapper(async (req, res, next) => { 
+    const userId = req.user.id || req.user._id;
     
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(userId);
     if (!user) {
-        return next(new AppError('User not found', 404));
+        return next(new AppError(404, HttpSatutus.Fail, 'User not found'));
     }
     
     user.avatar = req.file ? req.file.filename : user.avatar;
