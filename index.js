@@ -10,11 +10,16 @@ const appConfig = require('./config/app.config');
 const connectDB = require('./infrastructure/database/mongo_db');
 const path=require('node:path');
 const app=express();
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swigger.config.js');
 
 connectDB();
 
 
 app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Routes
 app.use('/api/v1/users', userRoutes     );
 //app.use('/api/v1/doctors', doctorRoutes);
@@ -28,7 +33,7 @@ app.use((err, req, res, next) => {
   const status = err.status || 'error';
   res.status(statusCode).json({
 
-  status:  status,message: err.message,
+  status:  status, message: err.message,
   });
 });
   

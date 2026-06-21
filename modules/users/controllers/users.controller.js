@@ -2,15 +2,16 @@ const bcrypt = require('bcrypt');
 const AppError = require('../../../shared/utils/app_error');
 const asyncWrapper = require('../../../shared/middleware/async_wrapper');
 const User = require('../models/user.model'); 
-const HttpSatutus = require('../../../shared/utils/http_status_text'); // تأكد من الاسم هنا لو بتستخدمه
+const HttpStatusText = require('../../../shared/utils/http_status_text'); // تأكد من الاسم هنا لو بتستخدمه
 
 const getProfile = asyncWrapper(async (req, res, next) => {
     //this user is get from verify token 
-    const user = req.user; 
-    
+    const userId = req.user.id; 
+    const user=await User.findById(userId);
+    const userObject=user.toObject();
     res.status(200).json({
-        status: 'success',
-        data: { user }
+        status:HttpStatusText.Success|| 'success',
+        data: {user: userObject }
     });
 });
 
@@ -33,7 +34,7 @@ console.log('id',userId);
     }
     
     res.status(200).json({
-        status: 'success',
+        status:HttpStatusText.Success|| 'success',
         data: { user: updatedUser } 
         });
 });
@@ -44,36 +45,36 @@ const changePassword = asyncWrapper(async (req, res, next) => {
 
     const user = await User.findById(userId).select('+password');
     if (!user) {
-        return next(new AppError(404,  HttpSatutus.Fail, 'User not found'));
+        return next(new AppError(404,  HttpStatusText.Fail, 'User not found'));
     }
     
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-        return next(new AppError(400,  HttpSatutus.Fail, 'Current password is incorrect'));
+        return next(new AppError(400,  HttpStatusText.Fail, 'Current password is incorrect'));
     }
     
     user.password = newPassword; 
     await user.save();
     
     res.status(200).json({
-        status: 'success',
+        status:HttpStatusText.Success|| 'success',
         message: 'Password updated successfully'
     });
 });
 
 const uploadAvatar = asyncWrapper(async (req, res, next) => { 
     const userId = req.user.id ;
-    
     const user = await User.findById(userId);
     if (!user) {
-        return next(new AppError(404, HttpSatutus.Fail, 'User not found'));
+        return next(new AppError(404, HttpStatusText.Fail, 'User not found'));
     }
-    
+    console.log(req.file);
+
     user.avatar = req.file ? req.file.filename : user.avatar;
-    await user.save();
-    
+    console.log(user.avatar);
+    await user.save({ validateBeforeSave: false });
     res.status(200).json({
-        status: 'success',
+        status: HttpStatusText.Success||'success',
         data: {
             avatar: user.avatar
         }
@@ -81,6 +82,7 @@ const uploadAvatar = asyncWrapper(async (req, res, next) => {
 });
 //admin 
 const getAllUsers = asyncWrapper(async (req, res, next) => {
+    console.log('start');
     //pagination
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -89,13 +91,12 @@ const getAllUsers = asyncWrapper(async (req, res, next) => {
     const users = await User.find({}, { password: 0, refreshToken: 0 })
                             .skip(skip)
                             .limit(limit);
-
+console.log('users',users);
     const totalUsers = await User.countDocuments();
-
+console.log('total users',totalUsers);
     res.status(200).json({
-        status: HttpStatusText.SUCCESS,
-        results: users.length,
-        total: totalUsers,
+        status: HttpStatusText.SUCCESS||'success',
+        totalUsers:totalUsers,
         data: { users }
     });
 });
@@ -106,7 +107,7 @@ const getUserById = asyncWrapper(async (req, res, next) => {
     const user = await User.findById(id, { password: 0, refreshToken: 0 });
 
     if (!user) {
-        return next(new AppError(404, HttpStatusText.FAIL || 'fail', 'User not found'));
+        return next(new AppError(404, HttpStatusText.Fail || 'fail', 'User not found'));
     }
 
     res.status(200).json({
@@ -117,20 +118,20 @@ const getUserById = asyncWrapper(async (req, res, next) => {
 
 const updateUser = asyncWrapper(async (req, res, next) => {
     const { id } = req.params;
-    const { name, role, isVerified } = req.body; // الـ Admin يقدر يغير الـ role أو حالة الحساب مثلاً
+    const { name, role } = req.body; // الـ Admin يقدر يغير الـ role أو حالة الحساب مثلاً
 
     const updatedUser = await User.findByIdAndUpdate(
         id,
-        { name, role, isVerified },
+        { name, role },
         { returnDocument: 'after', runValidators: true }
     ).select('-password -refreshToken');
 
     if (!updatedUser) {
-        return next(new AppError(404, HttpStatusText.FAIL || 'fail', 'User not found'));
+        return next(new AppError(404, HttpStatusText.Fail || 'fail', 'User not found'));
     }
 
     res.status(200).json({
-        status: HttpStatusText.SUCCESS,
+        status: HttpStatusText.SUCCESS ||'success',
         data: { user: updatedUser }
     });
 });
