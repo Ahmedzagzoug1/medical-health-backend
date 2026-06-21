@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const Gender=require('../../../shared/utils/gender');
 const doctorSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -48,7 +48,7 @@ const doctorSchema = new mongoose.Schema({
     ]
 }},
   gender: {
-    type: Gender, // Assuming
+    type: String, // Assuming
     enum: [Gender.MALE, Gender.FEMALE], // Ensure that the gender is either male or female
     required: true
   },

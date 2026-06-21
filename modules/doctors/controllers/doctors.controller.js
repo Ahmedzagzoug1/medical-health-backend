@@ -1,4 +1,4 @@
-const {verifyToken}=require('../../../shared/middleware');
+const {verifyToken}=require('../../../shared/middleware/verify_token');
 const HttpStatusText=require('../../../shared/utils/http_status_text');
 const asyncWrapper=require('../../../shared/middleware/async_wrapper');
 const Doctor=require('../models/doctor.model');
@@ -28,7 +28,7 @@ const addDoctor=asyncWrapper(async(req,res,next)=>{
 });
 const getDoctorById=asyncWrapper(async(req,res,next)=>{
 
-    res.sttus(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
+    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
 });
 
 
@@ -37,5 +37,5 @@ const getDoctorById=asyncWrapper(async(req,res,next)=>{
 
 
 
-module.exports={getAllDoctors,updateProfile,getProfile,setAvailability,
+module.exports={getAllDoctors,addDoctor,updateProfile,getProfile,setAvailability,
     getAvailability,getDoctorById};
