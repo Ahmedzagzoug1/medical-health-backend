@@ -1,8 +1,10 @@
+<<<<<<< Updated upstream
+=======
 const express = require('express');
 
 const authRoutes = require('./modules/auth/routes/auth.routes.js');
 const userRoutes = require('./modules/users/routes/users.routes.js');
-//const doctorRoutes = require('./modules/doctors/routes/doctor.route');
+const doctorRoutes = require('./modules/doctors/routes/doctors.route.js');
 const AppError = require('./shared/utils/app_error');
 
 const HttpStatus = require('./shared/utils/http_status_text');
@@ -22,7 +24,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use('/api/v1/users', userRoutes     );
-//app.use('/api/v1/doctors', doctorRoutes);
+app.use('/api/v1/doctors', doctorRoutes);
 app.use('/api/v1/auth', authRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -41,3 +43,4 @@ const port = appConfig.port || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+>>>>>>> Stashed changes
