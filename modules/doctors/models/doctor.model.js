@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Gender=require('../../../shared/utils/gender');
 const doctorSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.ObjectId,
     ref: 'User', 
         required: true,
     unique: true
@@ -64,7 +64,8 @@ const doctorSchema = new mongoose.Schema({
     type: String, 
     trim: true
   }
-}, {
+}
+, {
   timestamps: true 
 });
 
