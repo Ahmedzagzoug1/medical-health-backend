@@ -1,5 +1,4 @@
-<<<<<<< Updated upstream
-=======
+
 const express = require('express');
 
 const authRoutes = require('./modules/auth/routes/auth.routes.js');
@@ -43,4 +42,3 @@ const port = appConfig.port || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
->>>>>>> Stashed changes
