@@ -2,8 +2,15 @@ const {verifyToken}=require('../../../shared/middleware/verify_token');
 const HttpStatusText=require('../../../shared/utils/http_status_text');
 const asyncWrapper=require('../../../shared/middleware/async_wrapper');
 const Doctor=require('../models/doctor.model');
+const User=require('../../users/models/user.model');
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 const doctors=await Doctor.find({});
+console.log(doctors.map((doctor)=>{
+doctor.gender;
+}));
+
+  const doctors=await Doctor.find({});
+
 console.log(doctors.map((doctor)=>{
 doctor.gender;
 }));
@@ -22,8 +29,16 @@ const getProfile=asyncWrapper(async(req,res,next)=>{
     res.status(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
 });
 const updateProfile=asyncWrapper(async(req,res,next)=>{
+const {id }=req;
+if(!id){
+        return next(new AppError(401, HttpStatusText.Unauthorized, 'unautherizaed'));
+}
+const{title,specialty,yearsOfExperience,focus,profileDescription,careerPath,highlights}=req.body;
+ 
+const doctor=Doctor.findByIdAndUpdate(id,{$title:title});
 
-    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
+
+    res.status(200).json({'status':HttpStatusText.Success,'message':'update successfully','data':[doctor]});
 });
 /*
   userId: {
@@ -92,15 +107,24 @@ const updateProfile=asyncWrapper(async(req,res,next)=>{
 }
 */
 
-
+//{'userId','title','specialty','yearsOfExperience','focus','gander','','',''}
 const addDoctor=asyncWrapper(async(req,res,next)=>{
-const{userId,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights}=req.body;
-const doctor=Doctor.create(userId,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights);
+const{id,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights}=req.body;
+ 
+const user=await User.findById(id);
+console.log(user._id);
+const userObject=user.$toObject;
+const doctor=new Doctor.create( user._id,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights);
 await doctor.save();   
+console.log(doctor._id);
 res.status(201).json({'status':HttpStatusText.Success,'message':'doctor \'s profile add successful','data':{doctor}});
 });
 const getDoctorById=asyncWrapper(async(req,res,next)=>{
-
+const {doctorId}=req.params.id;
+const doctor= await Doctor.findById(doctorId);
+if(!doctor){
+ return res.status(404).json({'satatus':HttpStatusText.NotFound,'message':'Not Found'});
+}
     res.status(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
 });
 
