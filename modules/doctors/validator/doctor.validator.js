@@ -7,4 +7,21 @@ body('yearsOfExperience').isInt().withMessage('yearsOfExperience must be integer
 handleValidation
 ];
 //{id,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights}
-module.exports={ ProfileValidation};
+//{title,specialty,yearsOfExperience,focus,profileDescription,careerPath,highlights}
+const updateProfileValidation=[
+body('title').optional().isString,
+body('yearsOfExperience').optional().isNumeric,
+body('specialty').optional().isString,
+body('gender').optional().isIn(Object.values(Gender)).withMessage(('Gender must be MALE or FEMAILE')),
+body('focus').optional().isString,
+body('profileDescription').optional().isString,
+body('careerPath').optional().isString,
+
+
+body('highlights').optional().isString,
+
+
+
+handleValidation
+];
+module.exports={ ProfileValidation,updateProfileValidation};

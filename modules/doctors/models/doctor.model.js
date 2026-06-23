@@ -36,7 +36,7 @@ const doctorSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  availability:{date: { type: Date, default: Date.now }, 
+  availability:[{date: { type: Date, default: Date.now }, 
   slots: {
     type: [],
 //varutilizing a subdocument schema for the time slots
@@ -46,7 +46,7 @@ const doctorSchema = new mongoose.Schema({
       { time: '10:00 AM - 10:30 AM', isBooked: false },
       { time: '10:30 AM - 11:00 AM', isBooked: false }
     ]
-}},
+}}],
   gender: {
     type: String, 
     enum: [Gender.MALE, Gender.FEMALE], // Ensure that the gender is either male or female

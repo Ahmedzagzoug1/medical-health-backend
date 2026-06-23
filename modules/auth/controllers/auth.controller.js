@@ -15,7 +15,7 @@ const login = asyncWrapper(async (req, res, next) => {
     if (!isMatch) {
         return next(new AppError(401, HttpStatusText.Fail, 'Invalid email or password'));
     }
-
+console.log(user);
     const token =createAccessToken(user.id, user.role);
     user.password = undefined; // Remove password from the response
     user.__v = undefined; // Remove __v from the response
