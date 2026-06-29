@@ -5,6 +5,9 @@ module.exports = (fn) => {
     try {
       await fn(req, res, next);
     } catch (error) {
+      if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+return next(new AppError(401,HttpStatusText.Unauthorized,'not authentication or autherization '))
+      }
       next(new AppError(500, HttpStatusText.Error, error.message));
     }
   };
