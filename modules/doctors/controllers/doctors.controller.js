@@ -8,11 +8,6 @@ const {matchedData}=require('express-validator');
 
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
-const doctors=await Doctor.find({});
-console.log(doctors.map((doctor)=>{
-doctor.gender;
-}));
-const doctors=await Doctor.find({});
 
 
   const sorted={};
@@ -21,9 +16,8 @@ const filter={};
 if(gender !=null){
     filter.gender=gender;
 
-console.log(doctors.map((doctor)=>{
-doctor.gender;
-}));
+const doctors=await Doctor.find(filter).sort(gender);
+
     res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
 }
 if(rated =='1'){

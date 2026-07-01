@@ -1,24 +1,28 @@
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/app_error');
 const asyncWrapper = require('../middleware/async_wrapper');
-    const appConfig=require('../../config/app.config');
+    const {ACCESS_TOKEN_SECRET}=require('../../config/app.config');
     const HttpStatusText=require('../utils/http_status_text');
-const verifyToken = asyncWrapper(async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-const JWT_SECRET= process.env.JWT_SECRET;
 
-    // 1. Check if the Authorization header exists and follows the Bearer scheme
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(new AppError(401,HttpStatusText.Unauthorized,'Token is required'));
+
+const verifyToken = asyncWrapper(async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+        console.log(req.headers.authorization);
+token=req.headers.authorization.split(' ')[1];
+console.log(token);
     }
 
-    // 2. Extract the token from the header
-    const token = authHeader.split(' ')[1];
+//there is no token given 
+    if (!token) {
+        return next(new AppError(401, HttpStatusText.Unauthorized, ' token is required'));
+    }
 
     try {
-        // 3. Verify the token
-        const decoded = jwt.verify(token,JWT_SECRET);
-        
+        // 3. Verify the access token
+        const decoded = jwt.verify(token,ACCESS_TOKEN_SECRET);
+        console.log(decoded);
         // 4. Attach the decoded payload (e.g., userId, role) to the request object
         req.user = decoded;
         
@@ -26,7 +30,7 @@ const JWT_SECRET= process.env.JWT_SECRET;
     } catch (error) {
         // 5. Handle specific JWT errors gracefully
         if (error.name === 'TokenExpiredError') {
-            return next(new AppError(401,HttpStatusText.Unauthorized,'Token has expired, please log in again'));
+            return next(new AppError(401,HttpStatusText.Unauthorized,'Token has expired'));
         }
         if (error.name === 'JsonWebTokenError') {
             return next(new AppError(401,HttpStatusText.Unauthorized,'Invalid token, authorization denied'));
