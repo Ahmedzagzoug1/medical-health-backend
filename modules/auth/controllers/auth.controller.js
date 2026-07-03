@@ -10,14 +10,15 @@ const { userDto } = require('../dto/user.dto');
 
 const login = asyncWrapper(async (req, res, next) => {
     const { identifier, password } = req.body;
+
     const user = await User.findOne({ $or: [{ email: identifier }, { mobile: identifier }],
         password: { $exists: true } }).select('+password');
     if (!user) {
-        return next(new AppError( 401, HttpStatusText.Fail, 'Invalid email or password'));
+        return next(new AppError('Invalid email or password', 401));
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-        return next(new AppError(401, HttpStatusText.Fail, 'Invalid email or password'));
+        return next(new AppError('Invalid email or password', 401));
     }
 
 const accessToken = createAccessToken(user.id, user.email, user.role);

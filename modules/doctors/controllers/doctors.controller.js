@@ -13,12 +13,16 @@ const doctorDto=require('../dto/doctor.dto');
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 
+
   const sorted={};
 const {gender,rating}  =req.query;
 const filter={};
 if(gender !=null){
     filter.gender=gender;
 
+const doctors=await Doctor.find(filter).sort(gender);
+
+    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
 }
 if(rating =='1'){
 sorted={rating:1};
@@ -28,7 +32,7 @@ const doctorDtoResponse = doctors.map(doctor => doctorDto(doctor));
 
     res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
         'results':doctors.length,
-        'data':{doctors: doctorDtoResponse}});
+        'data':{doctors}});
 });
 const setAvailability=asyncWrapper(async(req,res,next)=>{
 

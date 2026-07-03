@@ -48,7 +48,7 @@ const doctorSchema = new mongoose.Schema({
     ]
 }}],
   gender: {
-    type: String, // Assuming
+    type: String, 
     enum: [Gender.MALE, Gender.FEMALE], // Ensure that the gender is either male or female
     required: true
   },
