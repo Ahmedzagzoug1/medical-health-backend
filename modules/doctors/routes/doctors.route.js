@@ -9,7 +9,7 @@ const{getAllDoctors,updateProfile,addDoctor,getProfile,setAvailability,
     getAvailability,getDoctorById}=require('../controllers/doctors.controller');
 
 router.get('/',getAllDoctors);
-router.post('/profile',verifyToken,allow_roles(UserRole.DOCTOR),ProfileValidation,addDoctor);
+router.post('/profile',verifyToken,allow_roles(UserRole.ADMIN),ProfileValidation,addDoctor);
 
 router.patch('/profile',updateProfileValidation,verifyToken,allow_roles(UserRole.DOCTOR),updateProfile);
 router.get('/profile/:id',getProfile);

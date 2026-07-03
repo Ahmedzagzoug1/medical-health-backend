@@ -4,16 +4,12 @@ const asyncWrapper=require('../../../shared/middleware/async_wrapper');
 const Doctor=require('../models/doctor.model');
 const User=require('../../users/models/user.model');
 const Gender=require('../../../shared/utils/gender');
+const UserRole=require('../../../shared/utils/user_role');
 const {matchedData}=require('express-validator');
-
+const AppError=require('../../../shared/utils/app_error');
+const {register}=require('../../auth/controllers/auth.controller');
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-const doctors=await Doctor.find({});
-=======
-=======
->>>>>>> Stashed changes
 
   const sorted={};
 const {gender,rated}  =req.query;
@@ -21,13 +17,10 @@ const filter={};
 if(gender !=null){
     filter.gender=gender;
 
-<<<<<<< Updated upstream
+
 console.log(doctors.map((doctor)=>{
 doctor.gender;
 }));
->>>>>>> Stashed changes
-    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
-=======
 }
 if(rated =='1'){
 sorted=1;
@@ -37,7 +30,7 @@ sorted=1;
     res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
         'results':doctors.length,
         'data':{doctors}});
->>>>>>> Stashed changes
+
 });
 const setAvailability=asyncWrapper(async(req,res,next)=>{
 
@@ -79,22 +72,20 @@ const doctor=Doctor.findByIdAndUpdate(id,updates,
 });
 
 const addDoctor=asyncWrapper(async(req,res,next)=>{
-<<<<<<< Updated upstream
-const{id,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights}=req.body;
- 
-const user=await User.findById(id);
-console.log(user._id);
-const userObject=user.$toObject;
-const doctor=new Doctor( user._id,title,specialty,yearsOfExperience,focus,gander,profileDescription,careerPath,highlights);
-await doctor.save();   
-=======
-const{title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
-const userDecoded=req.user;
-const doctor=await Doctor.create( {userId :userDecoded.id,title:title,
+
+const{
+    name,email,password,mobile,
+    title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
+    const hashedPassword=await bycrypt.hash(password,10);
+    const user=register(name,email,hashedPassword,mobile,UserRole.DOCTOR);
+if(!user){
+    return next(new AppError(400,HttpStatusText.BadRequest,'user is not created'));
+}
+
+    const doctor=await Doctor.create( {userId :user._id,title:title,
 specialty:  specialty,yearsOfExperience: yearsOfExperience,
 focus:focus,gender:gender,profileDescription:profileDescription,careerPath:careerPath,highlights:highlights});
->>>>>>> Stashed changes
-console.log(doctor._id);
+
 res.status(201).json({'status':HttpStatusText.Success,'message':'doctor \'s profile add successful','data':{doctor}});
 });
 
