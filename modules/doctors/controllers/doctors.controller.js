@@ -12,16 +12,16 @@ const mongoose=require('mongoose');
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 
+
   const sorted={};
 const {gender,rated}  =req.query;
 const filter={};
 if(gender !=null){
     filter.gender=gender;
 
+const doctors=await Doctor.find(filter).sort(gender);
 
-console.log(doctors.map((doctor)=>{
-doctor.gender;
-}));
+    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
 }
 if(rated =='1'){
 sorted=1;
@@ -31,7 +31,6 @@ sorted=1;
     res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
         'results':doctors.length,
         'data':{doctors}});
-
 });
 const setAvailability=asyncWrapper(async(req,res,next)=>{
 
