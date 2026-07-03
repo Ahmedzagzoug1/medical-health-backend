@@ -4,8 +4,11 @@ const asyncWrapper=require('../../../shared/middleware/async_wrapper');
 const Doctor=require('../models/doctor.model');
 const User=require('../../users/models/user.model');
 const Gender=require('../../../shared/utils/gender');
+const UserRole=require('../../../shared/utils/user_role');
 const {matchedData}=require('express-validator');
-
+const AppError=require('../../../shared/utils/app_error');
+const {register}=require('../../auth/controllers/auth.controller');
+const mongoose=require('mongoose');
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 
@@ -68,15 +71,32 @@ const doctor=Doctor.findByIdAndUpdate(id,updates,
     res.status(200).json({'status':HttpStatusText.Success,'message':'updated successfully','data':[doctor]});
 });
 
-const addDoctor=asyncWrapper(async(req,res,next)=>{
+const createDoctor=asyncWrapper(async(req,res,next)=>{
 
-const{title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
-const userDecoded=req.user;
-const doctor=await Doctor.create( {userId :userDecoded.id,title:title,
-specialty:  specialty,yearsOfExperience: yearsOfExperience,
-focus:focus,gender:gender,profileDescription:profileDescription,careerPath:careerPath,highlights:highlights});
-console.log(doctor._id);
-res.status(201).json({'status':HttpStatusText.Success,'message':'doctor \'s profile add successful','data':{doctor}});
+const{  
+    name,email,password,mobile,
+    title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
+const session=await mongoose.startSession();
+session.startTransaction();
+try{ 
+const user=await register(name,email,password,mobile,UserRole.DOCTOR,{session});
+if(!user){
+    await session.abortTransaction();
+    session.endSession();
+    return next(new AppError(400, HttpStatusText.BadRequest, 'user is not created'));
+}
+
+    const doctor=await Doctor.create( {userId :user._id,title,
+specialty, yearsOfExperience,
+focus,gender,profileDescription,careerPath,highlights},{session});
+await session.commitTransaction();
+session.endSession();
+res.status(201).json({'status':HttpStatusText.Success,'message':'doctor \'s profile created successfully','data':{doctor}});
+    }catch(error){
+        await session.abortTransaction();
+        session.endSession();
+        return next(error);
+    }
 });
 
 const getDoctorById=asyncWrapper(async(req,res,next)=>{
@@ -96,5 +116,5 @@ if(!doctor){
 
 
 
-module.exports={getAllDoctors,addDoctor,updateProfile,getProfile,setAvailability,
+module.exports={getAllDoctors,createDoctor,updateProfile,getProfile,setAvailability,
     getAvailability,getDoctorById};
