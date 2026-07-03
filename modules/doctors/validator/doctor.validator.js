@@ -1,7 +1,12 @@
 const {handleValidation}=require('../../../shared/middleware/handle_validation');
 const Gender=require('../../../shared/utils/gender');
 const {body,validationResult}=require('express-validator');
-const ProfileValidation=[
+const createDoctorValidation=[
+     body('name').notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Invalid email address'),
+  body('mobile').isMobilePhone().withMessage('Invalid mobile number'),
+  body('birthdate').isDate().withMessage('Invalid birthdate'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
 body('gender').isIn(Object.values(Gender)).withMessage('Gender must be MALE or FEMAILE'),
 body('yearsOfExperience').isInt().withMessage('yearsOfExperience must be integer'),
 handleValidation
@@ -24,4 +29,4 @@ body('highlights').optional().isString,
 
 handleValidation
 ];
-module.exports={ ProfileValidation,updateProfileValidation};
+module.exports={ createDoctorValidation,updateProfileValidation};
