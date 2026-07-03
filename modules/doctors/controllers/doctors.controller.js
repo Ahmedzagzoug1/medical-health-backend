@@ -7,14 +7,15 @@ const Gender=require('../../../shared/utils/gender');
 const UserRole=require('../../../shared/utils/user_role');
 const {matchedData}=require('express-validator');
 const AppError=require('../../../shared/utils/app_error');
-const {register}=require('../../auth/controllers/auth.controller');
+const {registerService}=require('../../auth/controllers/auth.controller');
 const mongoose=require('mongoose');
+const doctorDto=require('../dto/doctor.dto');
 
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 
 
   const sorted={};
-const {gender,rated}  =req.query;
+const {gender,rating}  =req.query;
 const filter={};
 if(gender !=null){
     filter.gender=gender;
@@ -23,10 +24,11 @@ const doctors=await Doctor.find(filter).sort(gender);
 
     res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
 }
-if(rated =='1'){
-sorted=1;
+if(rating =='1'){
+sorted={rating:1};
 }
   const doctors=await Doctor.find(filter).sort(sorted);
+const doctorDtoResponse = doctors.map(doctor => doctorDto(doctor));
 
     res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
         'results':doctors.length,
@@ -42,13 +44,33 @@ console.log(id);
 const availability=await Doctor.findById(id,{'availability':1});
     res.status(200).json({'status':HttpStatusText.Success,'message':'data is successful','data':[availability]});
 });
-const getProfile=asyncWrapper(async(req,res,next)=>{
-const id =req.user._id;
-if(!id){
-        return next(new AppError(401, HttpStatusText.Unauthorized, 'unautherizaed'));
+
+
+const getDoctorProfile=asyncWrapper(async(req,res,next)=>{
+const id =req.params.id;
+if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(
+        new AppError(
+            400,
+            HttpStatusText.BadRequest,
+            "Invalid doctor id"
+        )
+    );
 }
-const profile=await Doctor.findById(id);
-res.status(200).json({'status':HttpStatusText.Success,'message':'response is successful','data':[profile]});
+const doctor=await Doctor.findById(id).populate('userId','name email mobile birthdate avatar role').lean();
+if (!doctor) {
+    return next(
+        new AppError(
+            404,
+            HttpStatusText.NotFound,
+            "Doctor not found"
+        )
+    );
+}
+
+const profile=doctorDto(doctor);
+
+res.status(200).json({'status':HttpStatusText.Success,'message':'response is successful','data':profile});
 });
 const updateProfile=asyncWrapper(async(req,res,next)=>{
     Console.log('updated');
@@ -66,32 +88,50 @@ const doctor=Doctor.findByIdAndUpdate(id,updates,
         runValidators:true
     }
 );
+const doctorDtoResponse = doctorDto(doctor);
 
-
-    res.status(200).json({'status':HttpStatusText.Success,'message':'updated successfully','data':[doctor]});
+    res.status(200).json({'status':HttpStatusText.Success,'message':'updated successfully','data':doctorDtoResponse});
 });
 
 const createDoctor=asyncWrapper(async(req,res,next)=>{
 
 const{  
-    name,email,password,mobile,
+    name,email,password,mobile,birthdate,
     title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
 const session=await mongoose.startSession();
 session.startTransaction();
 try{ 
-const user=await register(name,email,password,mobile,UserRole.DOCTOR,{session});
+const { accessToken, refreshToken, user } = await registerService({name,email,password,mobile,birthdate,role:UserRole.DOCTOR}, {session});
 if(!user){
     await session.abortTransaction();
     session.endSession();
     return next(new AppError(400, HttpStatusText.BadRequest, 'user is not created'));
 }
 
-    const doctor=await Doctor.create( {userId :user._id,title,
+    const doctor=await Doctor.create([ {userId :user._id,title,
 specialty, yearsOfExperience,
-focus,gender,profileDescription,careerPath,highlights},{session});
+focus,gender,profileDescription,careerPath,highlights}],{session});
 await session.commitTransaction();
 session.endSession();
-res.status(201).json({'status':HttpStatusText.Success,'message':'doctor \'s profile created successfully','data':{doctor}});
+res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+    const userResponse = userDto(user);
+const doctorDtoResponse = doctorDto(doctor);
+
+res.status(201).json({
+    status: HttpStatusText.Success,
+    message: "Doctor profile created successfully",
+    data: {
+        doctor: doctorDtoResponse,
+        user: userResponse,
+        accessToken,
+        refreshToken
+    }
+});
     }catch(error){
         await session.abortTransaction();
         session.endSession();
@@ -107,7 +147,8 @@ console.log(doctor);
 if(!doctor){
  return res.status(404).json({'satatus':HttpStatusText.NotFound,'message':'Not Found'});
 }
-    res.status(200).json({'status':HttpStatusText.Success,'message':'doctor is exist','data':[doctor]});
+    const doctorDtoResponse = doctorDto(doctor);
+    res.status(200).json({'status':HttpStatusText.Success,'message':'doctor is exist','data':doctorDtoResponse});
 });
 
 
@@ -116,5 +157,5 @@ if(!doctor){
 
 
 
-module.exports={getAllDoctors,createDoctor,updateProfile,getProfile,setAvailability,
+module.exports={getAllDoctors,createDoctor,updateProfile,getDoctorProfile,setAvailability,
     getAvailability,getDoctorById};

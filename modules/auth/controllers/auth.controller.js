@@ -5,6 +5,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const HttpStatusText = require('../../../shared/utils/http_status_text');
 const {ACCESS_TOKEN_SECRET,REFRESH_TOKEN_SECRET,NODE_ENV}=require('../../../config/app.config');
+const userRole = require('../../../shared/utils/user_role');
+const { userDto } = require('../dto/user.dto');
+
 const login = asyncWrapper(async (req, res, next) => {
     const { identifier, password } = req.body;
 
@@ -24,8 +27,8 @@ const refreshToken=createRefreshToken(user.id, user.email, user.role);
 
      await User.findByIdAndUpdate(user.id,{refreshToken:hashedToken} );
 
- user.password = undefined; // Remove password from the response
-    user.__v = undefined; // Remove __v from the response
+    const userResponse = userDto(user);
+
 //for web
 res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -34,32 +37,25 @@ res.cookie('refreshToken', refreshToken, {
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
     res.status(200).json({status:HttpStatusText.Success,
-      message: 'user login successful' ,data:{accessToken, refreshToken,user}
+      message: 'user login successful' ,data:{accessToken, refreshToken,user:userResponse}});
      });
-    });
+    
     
 
 const register = asyncWrapper(async (req, res, next) => {
-    const { name, email, mobile, password, birthdate, role } = req.body;
+    const { name, email, mobile, password, birthdate } = req.body;
 console.log("البيانات اللي وصلت للـ Backend:", req.body);
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({ name, email, mobile,password: hashedPassword, role, birthdate });
-
-
-    await user.save();
-  user.password = undefined; // Remove password from the response
-    user.__v = undefined; // Remove __v from the response
-const accessToken = createAccessToken(user.id, user.email, user.role);
-const refreshToken=createRefreshToken(user.id, user.email, user.role);
-  const hashedToken = await bcrypt.hash(refreshToken, 10);
-
- user.RefreshToken =  hashedToken; 
-     await User.findByIdAndUpdate(user.id,{refreshToken:hashedToken} );
-
+const{ accessToken, refreshToken, user } = await registerService({ name, email, password, mobile, birthdate, role: userRole.PATIENT }, { session: null });
+res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 res.status(201).json({status:HttpStatusText.Success,message: 'User registered successfully' ,
     data:{accessToken, refreshToken,user} });
-    });
+
+});
 
 const createAccessToken = (id, email, role) => {
     return jwt.sign({id, email, role },ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
@@ -151,6 +147,53 @@ const logout = asyncWrapper(async (req, res, next) => {
         return next(new AppError(400, HttpStatusText.BadRequest, 'Invalid token'));
     }
   });
+const registerService = async (userData, options = {}) => {
+    const { name, email, password, mobile, birthdate, role } = userData;
+    const { session } = options;
 
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-module.exports={login,register,refreshToken,logout}; 
+    const exists = await User.findOne(
+        { $or: [{ email }, { mobile }] },
+        null,
+        { session }
+    );
+
+    if (exists) {
+        throw new AppError(
+            400,
+            HttpStatusText.BadRequest,
+            "Email or mobile already exists"
+        );
+    }
+
+    const user = new User({
+        name,
+        email,
+        mobile,
+        password: hashedPassword,
+        birthdate,
+        role
+    });
+
+    await user.save({ session });
+
+    const accessToken = createAccessToken(user.id, user.email, user.role);
+    const refreshToken = createRefreshToken(user.id, user.email, user.role);
+
+    const hashedToken = await bcrypt.hash(refreshToken, 10);
+
+    await User.findByIdAndUpdate(
+        user.id,
+        { refreshToken: hashedToken },
+        { session }
+    );
+
+    return {
+        accessToken,
+        refreshToken,
+        user
+    };
+};
+
+module.exports={login,register,refreshToken,logout,registerService}; 
