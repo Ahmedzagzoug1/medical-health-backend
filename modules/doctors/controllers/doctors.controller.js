@@ -19,13 +19,6 @@ const filter={};
 if(gender !=null){
     filter.gender=gender;
 
-<<<<<<< Updated upstream
-
-console.log(doctors.map((doctor)=>{
-doctor.gender;
-}));
-=======
->>>>>>> Stashed changes
 }
 if(rating =='1'){
 sorted={rating:1};
@@ -35,12 +28,7 @@ const doctorDtoResponse = doctors.map(doctor => doctorDto(doctor));
 
     res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
         'results':doctors.length,
-<<<<<<< Updated upstream
-        'data':{doctors}});
-
-=======
         'data':{doctors: doctorDtoResponse}});
->>>>>>> Stashed changes
 });
 const setAvailability=asyncWrapper(async(req,res,next)=>{
 
