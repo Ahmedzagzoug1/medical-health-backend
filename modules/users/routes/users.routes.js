@@ -7,6 +7,7 @@ const allowRoles = require('../../../shared/middleware/allow_roles');
 const upload = require('../../../shared/middleware/upload_file');
 const Roles = require('../../../shared/utils/user_role');
 const {changePasswordValidation}=require('../validator/users.validator');
+
 router.put('/profile', verifyToken, updateProfile);
 
 router.get('/profile',verifyToken,

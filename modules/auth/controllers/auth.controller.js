@@ -83,10 +83,8 @@ const refreshToken=asyncWrapper(async(req,res,next)=>{
     }
 
     try {
-console.log(token);
         const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
-console.log(decoded);
-        const user = await User.findById(decoded.userId);
+        const user = await User.findById(decoded.id);
         console.log(user.id);
         if (!user || !user.refreshToken) {
             return next(new AppError(403, HttpStatusText.Forbidden, 'Invalid refresh token'));
@@ -97,7 +95,6 @@ console.log(decoded);
             return next(new AppError(403, HttpStatusText.Forbidden, 'Invalid refresh token'));
         }
 
-        // 6. [Rotation] توليد توكنز جديدة تماماً
         const newAccessToken = createAccessToken(user.id, user.email,user.role);
         
         const newRefreshToken = createRefreshToken(user.id,user.email,user.role);

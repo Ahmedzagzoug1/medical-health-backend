@@ -10,7 +10,7 @@ const AppError=require('../../../shared/utils/app_error');
 const {registerService}=require('../../auth/controllers/auth.controller');
 const mongoose=require('mongoose');
 const doctorDto=require('../dto/doctor.dto');
-
+const {userDto}=require('../../auth/dto/user.dto');
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
 
 
@@ -98,21 +98,51 @@ const createDoctor=asyncWrapper(async(req,res,next)=>{
 const{  
     name,email,password,mobile,birthdate,
     title,specialty,yearsOfExperience,focus,gender,profileDescription,careerPath,highlights}=req.body;
+    console.log(req.body);
+
 const session=await mongoose.startSession();
 session.startTransaction();
 try{ 
 const { accessToken, refreshToken, user } = await registerService({name,email,password,mobile,birthdate,role:UserRole.DOCTOR}, {session});
 if(!user){
     await session.abortTransaction();
-    session.endSession();
     return next(new AppError(400, HttpStatusText.BadRequest, 'user is not created'));
 }
+console.log("user =", user);
 
-    const doctor=await Doctor.create([ {userId :user._id,title,
-specialty, yearsOfExperience,
-focus,gender,profileDescription,careerPath,highlights}],{session});
+console.log({
+    userId: user?._id,
+    title,
+    specialty,
+    yearsOfExperience,
+    focus,
+    gender,
+    profileDescription,
+    careerPath,
+    highlights
+});
+const doctorData = {
+    userId: user._id,
+    title,
+    specialty,
+    yearsOfExperience,
+    focus,
+    gender,
+    profileDescription,
+    careerPath,
+    highlights
+};
+
+const doctor = new Doctor(doctorData);
+
+console.log(doctor);
+
+const validationError = doctor.validateSync();
+
+console.log(validationError);
+
+await doctor.save({ session });
 await session.commitTransaction();
-session.endSession();
 res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -133,9 +163,13 @@ res.status(201).json({
     }
 });
     }catch(error){
+            if (session.inTransaction()) {
+
         await session.abortTransaction();
-        session.endSession();
+            }
         return next(error);
+    }finally{
+        session.endSession();
     }
 });
 

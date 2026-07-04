@@ -26,5 +26,6 @@ const upload = multer({ storage: deskstorage ,
     fileSize: 5 * 1024 * 1024 // 5MB
 }
 }
+
 );
 module.exports=upload;
