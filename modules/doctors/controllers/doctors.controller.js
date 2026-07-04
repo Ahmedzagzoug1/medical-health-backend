@@ -20,9 +20,6 @@ const filter={};
 if(gender !=null){
     filter.gender=gender;
 
-const doctors=await Doctor.find(filter).sort(gender);
-
-    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':doctors});
 }
 if(rating =='1'){
 sorted={rating:1};
@@ -34,17 +31,84 @@ const doctorDtoResponse = doctors.map(doctor => doctorDto(doctor));
         'results':doctors.length,
         'data':{doctors}});
 });
-const setAvailability=asyncWrapper(async(req,res,next)=>{
 
-    res.status(200).json({'status':HttpStatusText.Success,'message':'','data':[]});
+const setWorkingHours=asyncWrapper(async(req,res,next)=>{
+const userId=req.user.id;
+const {date,startTime,endTime,slotDuration}=req.body;
+console.log(userId,date,startTime,endTime,slotDuration);
+const doctor=await Doctor.findOne({userId:userId});
+console.log(doctor);
+console.log(doctor.workingHours);
+const exists = doctor.workingHours.some(
+  (item) =>
+    item.date.toISOString().split("T")[0] === date &&
+    item.startTime === startTime &&
+    item.endTime === endTime
+);
+
+if (exists) {
+    return next(new AppError("Working hours already exist",409));
+}
+const doctorUpdate=await Doctor.findByIdAndUpdate(doctor._id,{$push: {workingHours: {date,startTime,endTime,slotDuration}}},
+    {returnDocument:true,runValidators:true});
+    res.status(200).json({'status':HttpStatusText.Success,'message':'add working hours','data':[doctorUpdate.workingHours]});
 });
-const getAvailability=asyncWrapper(async(req,res,next)=>{
+const getWorkingHours=asyncWrapper(async(req,res,next)=>{
 const {id}=req.params;
 console.log(id);
-const availability=await Doctor.findById(id,{'availability':1});
-    res.status(200).json({'status':HttpStatusText.Success,'message':'data is successful','data':[availability]});
+const workingHours=await Doctor.findById(id,{'workingHours':1});
+    res.status(200).json({'status':HttpStatusText.Success,'message':'data is successful','data':workingHours});
 });
 
+const modifyWorkingHours=asyncWrapper(async(req,res,next)=>{
+const userId=req.user.id;
+const workingHourId=req.params.id;
+const {date,startTime,endTime,slotDuration}=req.body;
+const doctor=await Doctor.findOne({userId:userId});
+const workingHour=doctor.workingHours.id(workingHourId);
+if (!workingHour) {
+    return next(new AppError("Working hour not found",404));
+}
+await Doctor.findOneAndUpdate({userId:userId},
+    {$set:{'workingHours.$[elem].date':date,
+        'workingHours.$[elem].startTime':startTime,'workingHours.$[elem].endTime':endTime,
+        'workingHours.$[elem].slotDuration':slotDuration}},
+{returnDocument:true,runValidators:true,arrayFilters:[{'elem._id':workingHourId}]});
+res.status(200).json({'status':HttpStatusText.Success,'message':'update working hours','data':[doctor.workingHours]});
+});
+const deleteWorkingHours=asyncWrapper(async(req,res,next)=>{
+const userId=req.user.id;
+const workingHourId=req.params.id;
+const doctor=await Doctor.findOneAndUpdate({userId:userId},{$pull:{workingHours:{_id:workingHourId}}},{new:true});
+res.status(200).json({'status':HttpStatusText.Success,'message':'delete working hours','data':[doctor.workingHours]});
+}); 
+const getAvailableSlots=asyncWrapper(async(req,res,next)=>{
+const doctorId=req.params.doctorId;
+const {date}=req.query;
+const doctor=await Doctor.findById(doctorId);
+if(!doctor){
+    return next(new AppError(404,HttpStatusText.NotFound,'Doctor not found'));
+}
+const workingHour=doctor.workingHours.find(wh=>wh.date.toISOString().split('T')[0]===date);
+if(!workingHour){
+    return next(new AppError(404,HttpStatusText.NotFound,'Working hours not found for the specified date'));
+}
+workingHour.startTime=workingHour.startTime.split(':');
+workingHour.endTime=workingHour.endTime.split(':');
+const startTime=new Date();
+const soltDuration=workingHour.slotDuration;
+  const slots = generateSlots(
+    workingHour.startTime,
+    workingHour.endTime,
+    workingHour.slotDuration
+  );
+
+  res.status(200).json({
+    status: HttpStatusText.Success,
+    message: "Available slots",
+    data: slots,
+  });
+});
 
 const getDoctorProfile=asyncWrapper(async(req,res,next)=>{
 const id =req.params.id;
@@ -108,19 +172,6 @@ if(!user){
     await session.abortTransaction();
     return next(new AppError(400, HttpStatusText.BadRequest, 'user is not created'));
 }
-console.log("user =", user);
-
-console.log({
-    userId: user?._id,
-    title,
-    specialty,
-    yearsOfExperience,
-    focus,
-    gender,
-    profileDescription,
-    careerPath,
-    highlights
-});
 const doctorData = {
     userId: user._id,
     title,
@@ -186,10 +237,34 @@ if(!doctor){
 });
 
 
+const generateSlots = (startTime, endTime, slotDuration) => {
+  const slots = [];
 
+  const toMinutes = (time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
 
+  const toTime = (minutes) => {
+    const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+    const m = String(minutes % 60).padStart(2, "0");
+    return `${h}:${m}`;
+  };
 
+  let current = toMinutes(startTime);
+  const end = toMinutes(endTime);
 
+  while (current + slotDuration <= end) {
+    slots.push({
+      startTime: toTime(current),
+      endTime: toTime(current + slotDuration),
+    });
 
-module.exports={getAllDoctors,createDoctor,updateProfile,getDoctorProfile,setAvailability,
-    getAvailability,getDoctorById};
+    current += slotDuration;
+  }
+
+  return slots;
+};
+module.exports={getAllDoctors,createDoctor,updateProfile,getDoctorProfile,setWorkingHours,getWorkingHours,
+    modifyWorkingHours,deleteWorkingHours,getAvailableSlots,
+    getDoctorById};

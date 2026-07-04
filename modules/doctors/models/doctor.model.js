@@ -36,17 +36,14 @@ const doctorSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
-  availability:[{date: { type: Date, default: Date.now }, 
-  slots: {
-    type: [],
-//varutilizing a subdocument schema for the time slots
-    default: [
-      { time: '09:00 AM - 09:30 AM', isBooked: false },
-      { time: '09:30 AM - 10:00 AM', isBooked: false },
-      { time: '10:00 AM - 10:30 AM', isBooked: false },
-      { time: '10:30 AM - 11:00 AM', isBooked: false }
-    ]
-}}],
+  workingHours:[{date: { type: Date, default: Date.now }, 
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
+slotDuration:{
+  type:Number,
+  default:30
+}},],
+  
   gender: {
     type: String, 
     enum: [Gender.MALE, Gender.FEMALE], // Ensure that the gender is either male or female
