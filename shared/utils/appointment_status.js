@@ -1,7 +1,7 @@
-const oppointmentStatus = {
+const AppointmentStatus = {
   PENDING: 'pending',
   CONFIRMED: 'confirmed',
   CANCELLED: 'cancelled',
   COMPLETED: 'completed',
 };
-module.exports = oppointmentStatus;
+module.exports = AppointmentStatus;
