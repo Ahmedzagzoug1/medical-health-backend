@@ -9,16 +9,103 @@ A comprehensive, scalable, and secure Medical Health Management Backend API desi
 
 ---
 
-## 🚀 Core Features
+# 🚀 Features
 
-- Modular Architecture
+## 🔐 Authentication
+
 - JWT Authentication
-- Role-Based Access Control (RBAC)
-- Password Hashing using bcrypt
-- Request Validation using express-validator
-- Centralized Error Handling
-- File Upload Management with multer
-- MongoDB Integration using Mongoose
+- Refresh Token Rotation
+- Secure Password Hashing (bcrypt)
+- Login with Email or Mobile
+- Logout
+- Access & Refresh Tokens
+- Protected Routes
+
+---
+
+## 👥 Role-Based Access Control (RBAC)
+
+Three system roles:
+
+- 👑 Admin
+- 👨‍⚕️ Doctor
+- 🧑‍💻 Patient
+
+Each role has dedicated permissions and protected endpoints.
+
+---
+
+# 📦 Modules
+
+## 👨‍⚕️ Doctor Module
+
+- Doctor Profile
+- Doctor Details
+- Doctor Search
+- Working Hours
+- Weekly Availability Schedule
+- Available Appointment Slots
+
+---
+
+## 🧑‍💻 Patient Module
+
+- Favorite Doctors
+- Waiting Appointments
+- Completed Appointments
+- Cancelled Appointments
+- Patient Profile
+
+---
+
+## 📅 Appointment Module
+
+- Book Appointment
+- Update Appointment
+- Cancel Appointment
+- Doctor Appointments
+- Patient Appointments
+- Appointment Status Management
+
+---
+
+## 👤 User Module
+
+- Update Profile
+- Upload Avatar
+- Change Password
+- User Management
+- View User Profile
+
+---
+
+# 🔒 Security
+
+- JWT Authentication
+- Refresh Token Rotation
+- Password Hashing (bcrypt)
+- Role-Based Authorization (RBAC)
+- Request Validation
+- Global Error Handling
+- Protected Routes
+- Secure HTTP Headers
+- Environment Variables
+
+---
+
+# 🛠️ Tech Stack
+
+| Technology | Description |
+|------------|-------------|
+| Node.js | Runtime Environment |
+| Express.js | Backend Framework |
+| MongoDB | NoSQL Database |
+| Mongoose | ODM |
+| JWT | Authentication |
+| bcrypt | Password Hashing |
+| Multer | File Upload |
+| Express Validator | Request Validation |
+| dotenv | Environment Variables |
 
 ---
 
@@ -76,14 +163,11 @@ medical_health/
 Base URL:
 
 ```http
-/api/v1/auth
+POST /auth/register
+POST /auth/login
+POST /auth/refresh-token
+POST /auth/logout
 ```
-
-| Method | Endpoint | Description |
-|----------|----------|----------|
-| POST | /register | Register new user |
-| POST | /login | Login and receive JWT |
-
 ---
 
 ### Users
@@ -91,15 +175,16 @@ Base URL:
 Base URL:
 
 ```http
-/api/v1/users
+GET    /users/profile
+PUT    /users/profile
+PUT    /users/profile/password
+PUT    /users/profile/avatar
+
+GET    /users
+GET    /users/:id
+PUT    /users/:id
+DELETE /users/:id
 ```
-
-| Method | Endpoint | Description |
-|----------|----------|----------|
-| GET | /profile | Get profile |
-| PUT | /update | Update profile |
-| PATCH | /change-password | Change password |
-
 ---
 
 ### Doctors
@@ -107,32 +192,50 @@ Base URL:
 Base URL:
 
 ```http
-/api/v1/doctors
+GET    /doctors
+POST   /doctors
+PATCH  /doctors/profile
+
+GET    /doctors/profile/:id
+
+PUT    /doctors/working-hours
+PATCH  /doctors/working-hours/:id
+DELETE /doctors/working-hours/:id
+
+GET    /doctors/:doctorId/available-slots
+
+GET    /doctors/:id
 ```
-
-Features:
-
-- Doctor Profile Management
-- Availability Scheduling
-- Appointment Tracking
-
 ---
 
-### Appointments
+### Patients
 
 Base URL:
-
 ```http
-/api/v1/appointments
+GET    /patients/favouriteDoctors
+POST   /patients/favouriteDoctor
+
+GET    /patients/waitingAppointments
+GET    /patients/completedAppointments
+GET    /patients/cancelledAppointments
 ```
 
-Features:
+---
 
-- Book Appointment
-- Cancel Appointment
-- Reschedule Appointment
+### appointments
+
+```http
+POST    /appointments
+GET     /appointments/me
+GET     /appointments/:id
+PATCH   /appointments/:id
+DELETE  /appointments/:id
+
+GET     /appointments/doctor
+```
 
 ---
+
 
 ## 🛠️ Installation
 
@@ -156,9 +259,11 @@ PORT=3000
 
 DB_CONNECTION=mongodb://localhost:27017/medical_health_db
 
-JWT_SECRET=your_super_secret_jwt_key_here
+NODE_ENV=
 
-JWT_EXPIRES_IN=90d
+ACCESS_TOKEN_SECRET=
+
+REFRESH_TOKEN_SECRET=
 ```
 
 ### Run Project
@@ -202,28 +307,74 @@ nodemon
 ## 📦 Main Dependencies
 
 ```json
-{
-  "express": "^4.21.x",
-  "mongoose": "^8.x",
-  "jsonwebtoken": "^9.x",
-  "bcrypt": "^6.x",
-  "multer": "^2.x",
-  "express-validator": "^7.x"
-}
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express-validator": "^7.3.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.1",
+    "multer": "^2.2.0",
+    "nodemon": "^3.1.14",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
+    "validator": "^13.15.35"
+  }
 ```
 
 ---
 
-## 🚀 Future Features
+# 🔑 Authentication Flow
 
-- Real-time Chat (Socket.IO)
-- Video Consultation
-- Online Payments
-- Push Notifications
-- Medical Records
-- Reviews & Ratings
+```text
+Register
+      │
+      ▼
+Login
+      │
+      ▼
+Access Token (JWT)
+Refresh Token
+      │
+      ▼
+Protected Routes
+      │
+      ▼
+Refresh Token Rotation
+```
 
 ---
+
+# 📌 API Features
+
+- RESTful API
+- Modular Architecture
+- Clean Code
+- SOLID Principles
+- Reusable Components
+- Scalable Structure
+- Centralized Error Handling
+- Input Validation
+- Image Upload Support
+
+---
+
+# 🚀 Future Improvements
+
+- Email Verification
+- Password Reset
+- Two-Factor Authentication (2FA)
+- Notifications
+- Online Payments
+- Chat System
+- Video Consultation
+- Medical Records
+- Prescriptions
+- Ratings & Reviews
+- Dashboard Analytics
+
+---
+
 
 ## 📄 License
 
