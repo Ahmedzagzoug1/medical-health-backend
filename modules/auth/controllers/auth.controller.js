@@ -38,9 +38,7 @@ res.cookie('refreshToken', refreshToken, {
     });
     res.status(200).json({status:HttpStatusText.Success,
       message: 'user login successful' ,data:{accessToken, refreshToken,user:userResponse}});
-     });
-    
-    
+});
 
 const register = asyncWrapper(async (req, res, next) => {
     const { name, email, mobile, password, birthdate } = req.body;
@@ -100,7 +98,7 @@ const refreshToken=asyncWrapper(async(req,res,next)=>{
         const newRefreshToken = createRefreshToken(user.id,user.email,user.role);
 
         user.refreshToken = await bcrypt.hash(newRefreshToken, 10);
-        await user.save();
+await user.save();
 //add refresh token to protect web from XSS attacks
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,                        

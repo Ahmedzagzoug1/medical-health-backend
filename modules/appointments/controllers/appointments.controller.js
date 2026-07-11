@@ -6,6 +6,7 @@ const AppointmentStatus = require('../../../shared/utils/appointment_status');
 const DoctorModel = require('../../doctors/models/doctor.model');
 const User=require('../../users/models/user.model');
 const DoctorDto = require('../Dtos/doctors.dto');
+const Patient = require('../../patient/models/patient.model');
 const AppointmentDto = require('../Dtos/appointments.dto');
 const getMyAppointments = asyncHandler(async (req, res, next) => {
 const patientId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
@@ -42,15 +43,6 @@ if(!patientId){
     data: {appointments: appointmentDtoResponse}
   });
 });
-/**
- * {
-  "doctorId": "...",
-  "appointmentDate": "2026-08-01",
-  "startTime": "09:00",
-  "endTime": "09:15",
-  "problem": "Headache"
-}
- */
 const createAppointment = asyncHandler(async (req, res, next) => {
   const { doctorId, appointmentDate, startTime, endTime, problem, createdBy } = req.body;    
   const patientId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
@@ -108,10 +100,19 @@ if (!workingHour) {
 });
 const cancelAppointment = asyncHandler(async (req, res, next) => {
   const { appointmentId } = req.params;
-  const patientId = req.user.id;
-  if(!patientId){
+  const patients = await Patient.find().populate("userId");
+console.log(patients);
+const patients1=await Patient.find();
+console.log(patients1);
+  const userId = req.user.id;
+  console.log('User ID:', userId);
+  const patient =await Patient.findOne({userId:userId});
+  console.log('Patient:', patient);
+  const patientId = patient.id;
+  if(!userId){
     return next(new AppError(400, HttpStatus.BadRequest, 'Patient ID is required'));
   }
+  console.log('Patient ID:', patientId);
   const appointment = await AppointmentModel.findOne({ _id: appointmentId, patientId });
   if (!appointment) {
     return next(new AppError(404, HttpStatus.NotFound, 'Appointment not found'));
