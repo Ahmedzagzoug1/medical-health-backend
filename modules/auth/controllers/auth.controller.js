@@ -7,7 +7,8 @@ const HttpStatusText = require('../../../shared/utils/http_status_text');
 const {ACCESS_TOKEN_SECRET,REFRESH_TOKEN_SECRET,NODE_ENV}=require('../../../config/app.config');
 const userRole = require('../../../shared/utils/user_role');
 const { userDto } = require('../dto/user.dto');
-
+const { mongoose } = require('mongoose');
+const Patient =require('../../patient/models/patient.model');
 const login = asyncWrapper(async (req, res, next) => {
     const { identifier, password } = req.body;
 
@@ -41,9 +42,32 @@ res.cookie('refreshToken', refreshToken, {
 });
 
 const register = asyncWrapper(async (req, res, next) => {
-    const { name, email, mobile, password, birthdate } = req.body;
+    const { name, email, mobile, password, birthdate ,role} = req.body;
+let accessToken, refreshToken, user ;
+    if(role ==userRole.PATIENT || !role){
+        
+        const session=await mongoose.startSession();
+        session.startTransaction();
+        try{
+({ accessToken, refreshToken, user } = await registerService({
+     name, email, password, mobile, birthdate, role: userRole.PATIENT }, { session: session }));
+const patient = new Patient({
+    userId: user._id
+});
+
+await patient.save({ session });
+    await session.commitTransaction();
+session.endSession();    
+    }catch(e){
+            await session.abortTransaction({session});
+          return  next((new AppError(HttpStatusText.BadRequest, 400)));
+        }}else{
+({ accessToken, refreshToken, user } = await registerService({
+     name, email, password, mobile, birthdate, role },null));
+        }
+        
+    
 console.log("البيانات اللي وصلت للـ Backend:", req.body);
-const{ accessToken, refreshToken, user } = await registerService({ name, email, password, mobile, birthdate, role: userRole.PATIENT }, { session: null });
 res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: NODE_ENV === 'production',
