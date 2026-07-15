@@ -67,7 +67,6 @@ session.endSession();
         }
         
     
-console.log("البيانات اللي وصلت للـ Backend:", req.body);
 res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         secure: NODE_ENV === 'production',
@@ -107,7 +106,6 @@ const refreshToken=asyncWrapper(async(req,res,next)=>{
     try {
         const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
         const user = await User.findById(decoded.id);
-        console.log(user.id);
         if (!user || !user.refreshToken) {
             return next(new AppError(403, HttpStatusText.Forbidden, 'Invalid refresh token'));
         }
