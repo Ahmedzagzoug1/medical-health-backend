@@ -6,6 +6,12 @@ userId: {
         required: true,
     unique: true
   },
+  favoriteDoctors:[{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Doctor', 
+    unique: true
+   
+  }]
 }
 );
 const Patient=mongoose.model('Patient',patientSchema);

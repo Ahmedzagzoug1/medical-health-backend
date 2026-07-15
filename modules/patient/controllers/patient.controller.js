@@ -2,47 +2,117 @@ const async_wrapper=require('../../../shared/middleware/async_wrapper');
 const Doctor=require('../../doctors/models/doctor.model');
 const HttpstatusText=require('../../../shared/utils/http_status_text');
 const AppError=require('../../../shared/utils/app_error'); 
+const Patient = require('../models/patient.model');
+const DoctorDto=require('../dto/doctor.dto');
+const Appoiment=require('../../appointments/models/appointments.model');
+const Appointment = require('../../appointments/models/appointments.model');
+const AppointmentStatus = require('../../../shared/utils/appointment_status');
+const AppointmentDto = require('../dto/appiontment.dto');
+const getFavoriteDoctors = async_wrapper(async (req, res, next) => {
+    const userId = req.user.id;
 
-const getFavoriteDoctors=async_wrapper(async(req,res,next)=>{
+    const patient = await Patient.findOne({ userId })
+        .populate({
+            path: "favoriteDoctors",
+            populate: {
+                path: "userId",
+                select: "name avatar"
+            }
+        });
 
-    res.status(200).json({'status':HttpstatusText.Success,'message':'data get successfully',
-'data':{}
+    if (!patient) {
+        return next(
+            new AppError(
+                404,
+                HttpstatusText.Fail,
+                "Patient Not Found"
+            )
+        );
+    }
+
+    const doctors = patient.favoriteDoctors.map(doctor => DoctorDto(doctor));
+
+    res.status(200).json({
+        status: HttpstatusText.Success,
+        message: "Favorite doctors fetched successfully",
+        results:doctors.length,
+        data: doctors
     });
 });
+const addFavoriteDoctor = async_wrapper(async (req, res, next) => {
+    const { doctorId } = req.body;
+    const userId = req.user.id;
 
-const addFavoriteDoctors=async_wrapper(async(req,res,next)=>{
+    const doctor = await Doctor.findById(doctorId);
 
-    res.status(200).json({'status':HttpstatusText.Success,'message':'data get successfully',
-'data':{}
+    if (!doctor) {
+        return next(
+            new AppError(
+                404,
+                HttpstatusText.Fail,
+                "Doctor Not Found"
+            )
+        );
+    }
+
+    await Patient.findOneAndUpdate(
+        { userId },
+        {
+            $addToSet: {
+                favoriteDoctors: doctorId
+            }
+        },
+        { new: true }
+    );
+
+    res.status(200).json({
+        status: HttpstatusText.Success,
+        message: "Doctor added to favorites successfully"
     });
 });
+const removeFavoriteDoctor = async_wrapper(async (req, res, next) => {
+    const { doctorId } = req.body;
+    const userId = req.user.id;
 
-const getCompletedDoctors=async_wrapper(async(req,res,next)=>{
+    await Patient.findOneAndUpdate(
+        { userId },
+        {
+            $pull: {
+                favoriteDoctors: doctorId
+            }
+        }
+    );
 
-    res.status(200).json({'status':HttpstatusText.Success,'message':'data get successfully',
-'data':{}
+    res.status(200).json({
+        status: HttpstatusText.Success,
+        message: "Doctor removed from favorites successfully"
     });
 });
+const getPatientAppointments = async ( req,res,next) => {
+    const userId = req.user.id;
+const status =req.query.status;
+    const patient = await Patient.findOne({ userId });
 
-const getWaitingAppointments=async_wrapper(async(req,res,next)=>{
-
-    res.status(200).json({'status':HttpstatusText.Success,'message':'data get successfully',
-'data':{}
+   const appointments=await  Appointment.find({
+        patientId: patient._id,
+        status
+    }).populate({
+        path: "doctorId",
+        populate: {
+            path: "userId",
+            select: "name avatar"
+        }
     });
-});
-
-const getCancledAppointments=async_wrapper(async(req,res,next)=>{
-
+    const appiontmentDtoResponse=appointments.map((appointment)=>AppointmentDto(appointment));
     res.status(200).json({'status':HttpstatusText.Success,'message':'data get successfully',
-'data':{}
+        'results':appiontmentDtoResponse.length,
+'data':appiontmentDtoResponse
+    
     });
-});
+
+};
 
 
 
-
-
-
-module.exports={getFavoriteDoctors,addFavoriteDoctors,
-    getWaitingAppointments,getCompletedAppointments,
-    getCancledAppointments}
+module.exports={getFavoriteDoctors,addFavoriteDoctor,removeFavoriteDoctor,
+    getPatientAppointments};
