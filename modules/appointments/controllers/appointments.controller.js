@@ -8,11 +8,19 @@ const User=require('../../users/models/user.model');
 const DoctorDto = require('../Dtos/doctors.dto');
 const Patient = require('../../patient/models/patient.model');
 const AppointmentDto = require('../Dtos/appointments.dto');
+const Doctor = require('../../doctors/models/doctor.model');
+const userRole = require('../../../shared/utils/user_role');
 const getMyAppointments = asyncHandler(async (req, res, next) => {
-const patientId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
+const userId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
+const patient = await Patient.findOne({userId:userId});
+
+const patientId=patient.id;
+    console.log("patientId", patientId );
+
 if(!patientId){
   return next(new AppError(400,HttpStatus.BadRequest, 'Patient ID is required'));
 }
+
   const appointments = await AppointmentModel.find({ patientId })
     .populate({
         path: "doctorId",
@@ -21,6 +29,7 @@ if(!patientId){
             select: "name avatar"
         }
     });
+    console.log(appointments);
   const appointmentDtoResponse = appointments.map((appointment) => ({
   id: appointment._id,
   appointmentDate: appointment.appointmentDate,
@@ -45,11 +54,15 @@ if(!patientId){
 });
 const createAppointment = asyncHandler(async (req, res, next) => {
   const { doctorId, appointmentDate, startTime, endTime, problem, createdBy } = req.body;    
-  const patientId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
-  if(!patientId){
-    return next(new AppError(400, HttpStatus.BadRequest, 'Patient ID is required'));
+  const userId = req.user.id; // Assuming the authenticated user's ID is stored in req.user.id
+const patient = await Patient.findOne({userId:userId});
 
-  }
+const patientId=patient.id;
+    console.log("patientId", patientId );
+
+if(!patientId){
+  return next(new AppError(400,HttpStatus.BadRequest, 'Patient ID is required'));
+}
   const doctor = await DoctorModel.findById(doctorId);
   if (!doctor) {
     return next(new AppError(404, HttpStatus.NotFound, 'Doctor not found'));
@@ -99,31 +112,96 @@ if (!workingHour) {
   });
 });
 const cancelAppointment = asyncHandler(async (req, res, next) => {
+
+
   const { appointmentId } = req.params;
-  const patients = await Patient.find().populate("userId");
-console.log(patients);
-const patients1=await Patient.find();
-console.log(patients1);
-  const userId = req.user.id;
-  console.log('User ID:', userId);
-  const patient =await Patient.findOne({userId:userId});
-  console.log('Patient:', patient);
+
+   const appointmentDto = await changeOppointmentState(
+        req.user,
+        req.params.appointmentId,
+        AppointmentStatus.CANCELLED,
+        {
+            cancelReason: req.body.cancelReason,
+            cancelReasonNote: req.body.cancelReasonNote ??''
+        }
+    );
+     res.status(200).json({
+    status: HttpStatus.Success,
+    message: 'Appointment cancelled successfully',
+    data: appointmentDto,
+  });
+  /*const patient =await Patient.findOne({userId:userId});
   const patientId = patient.id;
   if(!userId){
     return next(new AppError(400, HttpStatus.BadRequest, 'Patient ID is required'));
   }
-  console.log('Patient ID:', patientId);
-  const appointment = await AppointmentModel.findOne({ _id: appointmentId, patientId });
+  const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+
   if (!appointment) {
     return next(new AppError(404, HttpStatus.NotFound, 'Appointment not found'));
   }
-  appointment.status = AppointmentStatus.Cancelled;
+  appointment.status = AppointmentStatus.CANCELLED;
   await appointment.save();
-  res.status(200).json({
+  const appointmentDto=new AppointmentDto(appointment);*/
+ 
+});
+//confirmAppointment,completeAppointment,rejectAppointment,noShowAppointment
+const confirmAppointment = asyncHandler(async (req, res, next) => {
+  console.log('confirm');
+   const appointmentDto = await changeOppointmentState(
+        req.user,
+        req.params.appointmentId,
+        AppointmentStatus.CONFIRMED,
+        
+    );
+     res.status(200).json({
     status: HttpStatus.Success,
-    message: 'Appointment cancelled successfully',
-    data: appointment,
+    message: 'Appointment confirmed successfully',
+    data: appointmentDto,
   });
+
+});
+const completeAppointment = asyncHandler(async (req, res, next) => {
+   const appointmentDto = await changeOppointmentState(
+        req.user,
+        req.params.appointmentId,
+        AppointmentStatus.COMPLETED,
+        
+    );
+     res.status(200).json({
+    status: HttpStatus.Success,
+    message: 'Appointment completed successfully',
+    data: appointmentDto,
+  });
+
+});
+const rejectAppointment = asyncHandler(async (req, res, next) => {
+   const appointmentDto = await changeOppointmentState(
+        req.user,
+        req.params.appointmentId,
+        AppointmentStatus.REJECT,
+        
+    );
+     res.status(200).json({
+    status: HttpStatus.Success,
+    message: 'Appointment rejected successfully',
+    data: appointmentDto,
+  });
+
+});
+const noShowAppointment = asyncHandler(async (req, res, next) => {
+   const appointmentDto = await changeOppointmentState(
+        req.user,
+        req.params.appointmentId,
+        AppointmentStatus.NO_SHOW,
+        
+    );
+     res.status(200).json({
+    status: HttpStatus.Success,
+    message: 'Appointment no show successfully',
+    data: appointmentDto,
+  });
+
 });
 const getAppointmentById = asyncHandler(async (req, res, next) => {
   const { appointmentId } = req.params;
@@ -153,8 +231,8 @@ const updateAppointment = asyncHandler(async (req, res, next) => {
     if (!appointment) {
     return next(new AppError(404, HttpStatus.NotFound, 'Appointment not found'));
     }
-  // Update the appointment with the new values
-  Object.assign(appointment, { appointmentDate, startTime, endTime, problem });
+await appointment.updateOne({appointmentDate, startTime, endTime, problem });
+    //Object.assign(appointment, { appointmentDate, startTime, endTime, problem });
   await appointment.save();
   res.status(200).json({
     status: HttpStatus.Success,
@@ -163,17 +241,64 @@ const updateAppointment = asyncHandler(async (req, res, next) => {
   });
 });
 const getDoctorAppointments = asyncHandler(async (req, res, next) => {
-  const doctorId = await doctor.findOne;
-    if(!doctorId){
+  const userId = req.user.id;
+  console.log(userId);
+  const doctor =await Doctor.findOne({userId:userId});
+
+    if(!doctor){
     return next(new AppError(400, HttpStatus.BadRequest, 'Doctor ID is required'));
     }
+    const doctorId=doctor.id;
   const appointments = await AppointmentModel.find({ doctorId });
+ const appointmentsDto= appointments.map((appointment)=>new AppointmentDto(appointment));
   res.status(200).json({
     status: HttpStatus.Success,
     message: 'Doctor appointments retrieved successfully',
-    data: appointments,
+    results:appointmentsDto.length,
+    data: appointmentsDto,
   });
 });
+const changeOppointmentState=async(user,appointmentId,appointmentStatus,{cancelReason,cancelReasonNote}={})=>{
+ //get Patient
+  const userId = user.id;
+  console.log('userId',userId);
+    console.log('userrole',user.role);
+
+if(user.role==userRole.PATIENT){
+    const patient =await Patient.findOne({userId:userId});
+  const patientId = patient.id;
+  if(!patientId){
+    throw new AppError(400, HttpStatus.BadRequest, 'Patient ID is required');
+  }
+}else if(user.role==userRole.DOCTOR){
+    const doctor =await DoctorModel.findOne({userId:userId});
+  const doctorId = doctor.id;
+  if(!doctorId){
+    throw new AppError(400, HttpStatus.BadRequest, 'Doctor ID is required');
+  }
+}else{
+    throw new AppError(400, HttpStatus.Forbidden, 'you donot have access to  this role');
+}
+
+  //get appointment
+  const appointment = await AppointmentModel.findOne({ _id: appointmentId });
+
+  if (!appointment) {
+   throw new AppError(404, HttpStatus.NotFound, 'Appointment not found');
+  }
+  //change state
+  appointment.status = appointmentStatus;
+  //cancelAppointment status
+if(appointmentStatus==AppointmentStatus.CANCELLED){
+appointment.cancelReason = cancelReason;
+appointment.cancelReasonNote = cancelReasonNote ?? "";
+
+}
+  await appointment.save();
+
+  const appointmentDto=new AppointmentDto(appointment);
+  return appointmentDto;
+}
 module.exports = {
   getMyAppointments,
   createAppointment,
@@ -181,4 +306,5 @@ module.exports = {
     getAppointmentById,
     updateAppointment,
     getDoctorAppointments,
+    confirmAppointment,completeAppointment,rejectAppointment,noShowAppointment
 };

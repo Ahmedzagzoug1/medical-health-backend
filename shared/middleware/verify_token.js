@@ -11,7 +11,6 @@ const verifyToken = asyncWrapper(async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
         console.log(req.headers.authorization);
 token=req.headers.authorization.split(' ')[1];
-console.log(token);
     }
 
 //there is no token given 
@@ -22,7 +21,6 @@ console.log(token);
     try {
         // 3. Verify the access token
         const decoded = jwt.verify(token,ACCESS_TOKEN_SECRET);
-        console.log(decoded);
         // 4. Attach the decoded payload (e.g., userId, role) to the request object
         req.user = decoded;
         

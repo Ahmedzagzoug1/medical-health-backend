@@ -1,5 +1,6 @@
 const mongoose =require('mongoose');
 const AppointmentStatus = require('../../../shared/utils/appointment_status');
+const cancelReason = require('../../../shared/utils/cancel_reason');
 const appointmentSchema = new mongoose.Schema(
   {
     doctorId: {
@@ -52,6 +53,13 @@ const appointmentSchema = new mongoose.Schema(
       trim: true,
       maxlength: 2000,
     },
+    cancelReason: {
+    type: String,
+    enum: [
+      cancelReason
+    ]
+},
+cancelReasonNote: String
   },
   {
     timestamps: true,
