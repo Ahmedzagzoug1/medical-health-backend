@@ -11,25 +11,43 @@ const {registerService}=require('../../auth/controllers/auth.controller');
 const mongoose=require('mongoose');
 const doctorDto=require('../dto/doctor.dto');
 const {userDto}=require('../../auth/dto/user.dto');
+const searchDoctors=require('../services/search_doctors.services');
+const paginate=require('../../../shared/utils/paginate');
+
 const getAllDoctors=asyncWrapper(async(req,res,next)=>{
+const {
+  gender,
+  rating,
+  search,
+  page = 1,
+  limit = 7,
+} = req.query;
+let filter ;
+    let doctors = await Doctor.find(filter)
+  .populate('userId', 'name avatar')
+  .sort(sorted);
 
+doctors = searchDoctors(doctors, search);
 
-  const sorted={};
-const {gender,rating}  =req.query;
-const filter={};
-if(gender !=null){
-    filter.gender=gender;
+const total = doctors.length;
 
-}
-if(rating =='1'){
-sorted={rating:1};
-}
-  const doctors=await Doctor.find(filter).sort(sorted);
-const doctorDtoResponse = doctors.map(doctor => doctorDto(doctor));
+const skip = (Number(page) - 1) * Number(limit);
 
-    res.status(200).json({'status':HttpStatusText.Success,'message':'doctors get successfully',
-        'results':doctors.length,
-        'data':{doctors}});
+const doctorDtoResponse = doctors
+  .slice(skip, skip + Number(limit))
+  .map(doctorDto);
+
+res.status(200).json({
+  status: HttpStatusText.Success,
+  message: 'Doctors fetched successfully',
+  page: Number(page),
+  limit: Number(limit),
+  total,
+  totalPages: Math.ceil(total / Number(limit)),
+  data: {
+    doctors: doctorDtoResponse,
+  },
+});
 });
 
 const setWorkingHours=asyncWrapper(async(req,res,next)=>{
@@ -226,9 +244,7 @@ res.status(201).json({
 
 const getDoctorById=asyncWrapper(async(req,res,next)=>{
 const doctorId=req.params.id;
-console.log(doctorId);
-const doctor= await Doctor.findById(doctorId);
-console.log(doctor);
+const doctor= await Doctor.findById(doctorId).populate('userId','name avatar');
 if(!doctor){
  return res.status(404).json({'satatus':HttpStatusText.NotFound,'message':'Not Found'});
 }

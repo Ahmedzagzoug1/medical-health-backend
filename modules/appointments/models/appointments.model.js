@@ -56,7 +56,7 @@ const appointmentSchema = new mongoose.Schema(
     cancelReason: {
     type: String,
     enum: [
-      cancelReason
+      cancelReason.RESCHEDULE,cancelReason.WEATHER,cancelReason.WORK,cancelReason.OTHER
     ]
 },
 cancelReasonNote: String

@@ -1,5 +1,5 @@
 class AppointmentDto  {
-  constructor(appointment){
+constructor(appointment){
 this.id=appointment.id;
 this.doctorId=appointment.doctorId;
 this.patientId=appointment.patientId;

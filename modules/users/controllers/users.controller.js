@@ -11,6 +11,8 @@ const getProfile = asyncWrapper(async (req, res, next) => {
     const userObject=user.toObject();
     res.status(200).json({
         status:HttpStatusText.Success|| 'success',
+                message :'data gets successful',
+
         data: {user: userObject }
     });
 });
@@ -35,6 +37,7 @@ console.log('id',userId);
     
     res.status(200).json({
         status:HttpStatusText.Success|| 'success',
+        message :'data gets successful',
         data: { user: updatedUser } 
         });
 });

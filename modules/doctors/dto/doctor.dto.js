@@ -1,6 +1,7 @@
 const doctorDto = (doctor) => ({
     id: doctor._id,
-    userId: doctor.userId,
+    name:doctor.userId?.name,
+    avatar:doctor.userId?.avatar,
     title: doctor.title,
     specialty: doctor.specialty,
     yearsOfExperience: doctor.yearsOfExperience,

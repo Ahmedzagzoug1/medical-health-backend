@@ -3,7 +3,7 @@ const Doctor=require('../../doctors/models/doctor.model');
 const HttpstatusText=require('../../../shared/utils/http_status_text');
 const AppError=require('../../../shared/utils/app_error'); 
 const Patient = require('../models/patient.model');
-const DoctorDto=require('../dto/doctor.dto');
+const DoctorDto=require('../../doctors/dto/doctor.dto');
 const Appoiment=require('../../appointments/models/appointments.model');
 const Appointment = require('../../appointments/models/appointments.model');
 const AppointmentStatus = require('../../../shared/utils/appointment_status');
@@ -100,7 +100,7 @@ const status =req.query.status;
         path: "doctorId",
         populate: {
             path: "userId",
-            select: "name avatar"
+            select: "name avatar specialty rating"
         }
     });
     const appiontmentDtoResponse=appointments.map((appointment)=>AppointmentDto(appointment));

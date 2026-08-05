@@ -130,22 +130,8 @@ const cancelAppointment = asyncHandler(async (req, res, next) => {
     message: 'Appointment cancelled successfully',
     data: appointmentDto,
   });
-  /*const patient =await Patient.findOne({userId:userId});
-  const patientId = patient.id;
-  if(!userId){
-    return next(new AppError(400, HttpStatus.BadRequest, 'Patient ID is required'));
-  }
-  const appointment = await AppointmentModel.findOne({ _id: appointmentId });
-
-  if (!appointment) {
-    return next(new AppError(404, HttpStatus.NotFound, 'Appointment not found'));
-  }
-  appointment.status = AppointmentStatus.CANCELLED;
-  await appointment.save();
-  const appointmentDto=new AppointmentDto(appointment);*/
- 
+  
 });
-//confirmAppointment,completeAppointment,rejectAppointment,noShowAppointment
 const confirmAppointment = asyncHandler(async (req, res, next) => {
   console.log('confirm');
    const appointmentDto = await changeOppointmentState(
@@ -261,9 +247,7 @@ const getDoctorAppointments = asyncHandler(async (req, res, next) => {
 const changeOppointmentState=async(user,appointmentId,appointmentStatus,{cancelReason,cancelReasonNote}={})=>{
  //get Patient
   const userId = user.id;
-  console.log('userId',userId);
-    console.log('userrole',user.role);
-
+//check roles
 if(user.role==userRole.PATIENT){
     const patient =await Patient.findOne({userId:userId});
   const patientId = patient.id;

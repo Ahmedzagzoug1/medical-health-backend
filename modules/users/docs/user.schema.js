@@ -43,6 +43,11 @@ module.exports = {
         type: "string",
         example: "Success"
       },
+        message: {
+        type: "string",
+        example: "data gets successful"
+      },
+  
       data: {
         type: "object",
         properties: {

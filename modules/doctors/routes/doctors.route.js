@@ -7,9 +7,10 @@ const {createDoctorValidation,updateProfileValidation,workingHoursValidation,
     availableSlotsValidation,
     updateWorkingHoursValidation
 }=require('../validator/doctor.validator');
-const router=app.Router();
 const{getAllDoctors,updateProfile,createDoctor,getDoctorProfile,setWorkingHours,
     getWorkingHours, modifyWorkingHours, deleteWorkingHours, getDoctorById, getAvailableSlots}=require('../controllers/doctors.controller');
+
+const router=app.Router();
 
 router.get('/',getAllDoctors);
 router.post('/',verifyToken,allow_roles(UserRole.ADMIN),createDoctorValidation,createDoctor);
