@@ -6,7 +6,7 @@ module.exports = {
     ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
 NODE_ENV:process.env.NODE_ENV,
-//
+//payment
  API_KEY : process.env.API_KEY,
   CARD: process.env.CARD_INTEGRATION_ID,
   WALLET: process.env.WALLET_INTEGRATION_ID,
