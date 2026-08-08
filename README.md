@@ -35,7 +35,7 @@ Each role has dedicated permissions and protected endpoints.
 
 ---
 # ER Daigram 
-![Medical Health ERP Diagram](medical_health/github_images/project_erp.png)
+![Medical Health ERP Diagram](github_images/project_erp.png)
 
 
 ---
