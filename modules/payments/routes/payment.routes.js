@@ -1,0 +1,10 @@
+const express=require('express');
+const {createPaymentValidationBody}=require('../validator/payment.validator');
+const userRole=require('../../../shared/utils/user_role');
+const allow_roles=require('../../../shared/middleware/allow_roles');
+const { getPaymentUrl, paymobWebhook } = require('../controllers/payments.controller');
+const router=express.Router();
+const {getPaymentUrl,paymobWebhook}=require('../controllers/payments.controller');
+router.post("/get-payment-url", createPaymentValidationBody, allow_roles([userRole.Patient]), getPaymentUrl);
+router.post('/paymob-webhook',paymobWebhook);
+module.exports=router;

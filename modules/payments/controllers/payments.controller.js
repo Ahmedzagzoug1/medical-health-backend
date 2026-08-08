@@ -1,16 +1,25 @@
 const async_wrapper=require('../../../shared/middleware/async_wrapper');
 const {API_KEY,INTEGRATION_IDS,CARD,WALLET,KOISK,IFRAME_ID,PAYMOB_HMAC_SECRET}=
 require('../../../config/app.config');
+const getPaymentUrl = async_wrapper(async (req, res) => {
+    const result = await paymentService.createPayment(req.body);
+
+    res.status(200).json(result);
+});
+
+const paymobWebhook = async_wrapper(async (req, res) => {
+    await paymentService.handleWebhook(req);
+
+    res.status(200).send("OK");
+});
 
 
 
 
 const getPaymentUrl= async_wrapper( (req, res,next) => {
   try {
-    // 1. تحديد المعاملات المطلوبة (Required Body Params)
     const { amount, firstName, lastName, email, phoneNumber, paymentType } = req.body;
 
-    // التحقق من وجود البيانات الأساسية
     if (!amount || !paymentType || !email) {
       return res.status(400).json({ error: "Missing required fields: amount, email, or paymentType" });
     }
