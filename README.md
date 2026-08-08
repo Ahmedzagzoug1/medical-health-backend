@@ -34,7 +34,11 @@ Three system roles:
 Each role has dedicated permissions and protected endpoints.
 
 ---
+# ER Daigram 
+![Medical Health ERP Diagram](medical_health/github_images/project_erp.png)
 
+
+---
 # 📦 Modules
 
 ## 👨‍⚕️ Doctor Module
