@@ -2,7 +2,6 @@ const mongoose=require('mongoose');
 const userDeviceSchema=mongoose.Schema({
     userId:{
         type:mongoose.Schema.ObjectId,
-        unique:true,
         require:true
     },
     deviceId:{
@@ -14,6 +13,9 @@ const userDeviceSchema=mongoose.Schema({
         type:String,
          unique:true,
         require:true
+    }, isActive:{
+        type:Boolean,
+        default:false
     }
 },
 {
