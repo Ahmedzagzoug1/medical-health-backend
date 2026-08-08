@@ -15,7 +15,6 @@ const userId = req.user.id; // Assuming the authenticated user's ID is stored in
 const patient = await Patient.findOne({userId:userId});
 
 const patientId=patient.id;
-    console.log("patientId", patientId );
 
 if(!patientId){
   return next(new AppError(400,HttpStatus.BadRequest, 'Patient ID is required'));
@@ -199,10 +198,11 @@ const getAppointmentById = asyncHandler(async (req, res, next) => {
   if (!appointment) {
     return next(new AppError(404, HttpStatus.NotFound, 'Appointment not found'));
   }
+  const appointmentDto=AppointmentDto(appointment);
   res.status(200).json({
     status: HttpStatus.Success,
     message: 'Appointment retrieved successfully',
-    data: appointment,
+    data: appointmentDto,
   });
 });
 const updateAppointment = asyncHandler(async (req, res, next) => {
